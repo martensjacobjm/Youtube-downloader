@@ -85,25 +85,24 @@ if ($interactiveMode) {
     
     # === VAD SKA LADDAS NER ===
     Write-Host "`n📦 STEG 2: Vad vill du ladda ner?" -ForegroundColor Yellow
-    
-    $choice = Read-Host "   1) Bara video`n   2) Bara undertexter`n   3) Både video och undertexter`n`nVal (1-3)"
-    
-    switch ($choice) {
-        "1" { 
-            $downloadVideo = $true
-            $downloadSubs = $false
-            Write-Host "✓ Laddar bara video" -ForegroundColor Green
-        }
-        "2" { 
-            $downloadVideo = $false
-            $downloadSubs = $true
-            Write-Host "✓ Laddar bara undertexter" -ForegroundColor Green
-        }
-        default { 
-            $downloadVideo = $true
-            $downloadSubs = $true
-            Write-Host "✓ Laddar både video och undertexter" -ForegroundColor Green
-        }
+    Write-Host "   1) Bara video" -ForegroundColor Gray
+    Write-Host "   2) Bara undertexter" -ForegroundColor Gray
+    Write-Host "   3) Både video och undertexter" -ForegroundColor Gray
+
+    $choice = Read-Host "`nVal (1-3)"
+
+    if ($choice -eq "1") {
+        $downloadVideo = $true
+        $downloadSubs = $false
+        Write-Host "✓ Laddar bara video" -ForegroundColor Green
+    } elseif ($choice -eq "2") {
+        $downloadVideo = $false
+        $downloadSubs = $true
+        Write-Host "✓ Laddar bara undertexter" -ForegroundColor Green
+    } else {
+        $downloadVideo = $true
+        $downloadSubs = $true
+        Write-Host "✓ Laddar både video och undertexter" -ForegroundColor Green
     }
     
     # === EMBED SUBTITLES ===
