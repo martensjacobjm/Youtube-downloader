@@ -12,7 +12,7 @@
 #==============================================================================
 # KONFIG - SÖKVÄGAR
 #==============================================================================
-$baseDir = "C:\Users\JMS\OneDrive - Dala VS Värme & Sanitet\Privat\Youtube download"
+$baseDir = "C:\Users\$env:USERNAME\OneDrive - Dala VS Värme & Sanitet\Privat\Youtube download"
 $filmFolder = Join-Path $baseDir "Filmer"
 $subsDir = Join-Path $baseDir "Undertextfiler"
 $yt = Join-Path $baseDir "yt-dlp.exe"
