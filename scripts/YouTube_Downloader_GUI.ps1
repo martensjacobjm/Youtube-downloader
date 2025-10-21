@@ -1,5 +1,5 @@
 # YouTube Downloader GUI
-# Grafisk GUI för att ladda ner YouTube-videos med yt-dlp
+# Grafisk GUI for att ladda ner YouTube-videos med yt-dlp
 
 # UTF-8 encoding
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
@@ -9,17 +9,17 @@ Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 
 # === KONFIGURATION ===
-$baseDir = "C:\Users\$env:USERNAME\OneDrive - Dala VS Värme & Sanitet\Privat\Youtube download"
-$ytDlpPath = Join-Path $baseDir "yt-dlp.exe"
-$ffmpegPath = Join-Path $baseDir "ffmpeg.exe"
-$outputDir = Join-Path $baseDir "downloaded"
+$baseDir ="C:\Users\$env:USERNAME\OneDrive - Dala VS Varme & Sanitet\Privat\Youtube download"
+$ytDlpPath = Join-Path $baseDir"yt-dlp.exe"
+$ffmpegPath = Join-Path $baseDir"ffmpeg.exe"
+$outputDir = Join-Path $baseDir"downloaded"
 
 # Skapa output-mapp om den inte finns
 if (-not (Test-Path $outputDir)) {
     New-Item -ItemType Directory -Path $outputDir -Force | Out-Null
 }
 
-# === SKAPA FORMULÄR ===
+# === SKAPA FORMULAR ===
 $form = New-Object System.Windows.Forms.Form
 $form.Text = 'YouTube Downloader'
 $form.Size = New-Object System.Drawing.Size(700, 750)
@@ -40,7 +40,7 @@ $textBoxUrl.Size = New-Object System.Drawing.Size(660, 25)
 $textBoxUrl.Font = New-Object System.Drawing.Font("Consolas", 10)
 $form.Controls.Add($textBoxUrl)
 
-# === INNEHÅLLSTYP ===
+# === INNEHALLSTYP ===
 $groupContent = New-Object System.Windows.Forms.GroupBox
 $groupContent.Location = New-Object System.Drawing.Point(10, 70)
 $groupContent.Size = New-Object System.Drawing.Size(320, 160)
@@ -82,14 +82,14 @@ $form.Controls.Add($groupQuality)
 $labelQuality = New-Object System.Windows.Forms.Label
 $labelQuality.Location = New-Object System.Drawing.Point(15, 25)
 $labelQuality.Size = New-Object System.Drawing.Size(100, 20)
-$labelQuality.Text = 'Välj kvalitet:'
+$labelQuality.Text = 'Valj kvalitet:'
 $groupQuality.Controls.Add($labelQuality)
 
 $comboQuality = New-Object System.Windows.Forms.ComboBox
 $comboQuality.Location = New-Object System.Drawing.Point(15, 45)
 $comboQuality.Size = New-Object System.Drawing.Size(280, 25)
 $comboQuality.DropDownStyle = 'DropDownList'
-$comboQuality.Items.AddRange(@('Bästa (2160p/4K)', '1440p (2K)', '1080p (Full HD)', '720p (HD)', '480p', '360p', '240p'))
+$comboQuality.Items.AddRange(@('Basta (2160p/4K)', '1440p (2K)', '1080p (Full HD)', '720p (HD)', '480p', '360p', '240p'))
 $comboQuality.SelectedIndex = 2  # Default: 1080p
 $groupQuality.Controls.Add($comboQuality)
 
@@ -110,21 +110,21 @@ $groupSubs.Controls.Add($checkDownloadSubs)
 $checkEmbedSubs = New-Object System.Windows.Forms.CheckBox
 $checkEmbedSubs.Location = New-Object System.Drawing.Point(15, 55)
 $checkEmbedSubs.Size = New-Object System.Drawing.Size(280, 25)
-$checkEmbedSubs.Text = 'Bädda in undertexter i video'
+$checkEmbedSubs.Text = 'Badda in undertexter i video'
 $checkEmbedSubs.Enabled = $false
 $groupSubs.Controls.Add($checkEmbedSubs)
 
 $labelSubLang = New-Object System.Windows.Forms.Label
 $labelSubLang.Location = New-Object System.Drawing.Point(15, 85)
 $labelSubLang.Size = New-Object System.Drawing.Size(100, 20)
-$labelSubLang.Text = 'Språk:'
+$labelSubLang.Text = 'Sprak:'
 $groupSubs.Controls.Add($labelSubLang)
 
 $comboSubLang = New-Object System.Windows.Forms.ComboBox
 $comboSubLang.Location = New-Object System.Drawing.Point(15, 105)
 $comboSubLang.Size = New-Object System.Drawing.Size(280, 25)
 $comboSubLang.DropDownStyle = 'DropDownList'
-$comboSubLang.Items.AddRange(@('Svenska', 'Engelska', 'Alla tillgängliga'))
+$comboSubLang.Items.AddRange(@('Svenska', 'Engelska', 'Alla tillgangliga'))
 $comboSubLang.SelectedIndex = 0  # Default: Svenska
 $comboSubLang.Enabled = $false
 $groupSubs.Controls.Add($comboSubLang)
@@ -208,38 +208,38 @@ $form.Controls.Add($btnDownload)
 # === NEDLADDNINGSLOGIK ===
 $btnDownload.Add_Click({
     # Rensa status
-    $textBoxStatus.Text = ""
+    $textBoxStatus.Text =""
 
     # Validera URL
     $url = $textBoxUrl.Text.Trim()
     if ([string]::IsNullOrWhiteSpace($url)) {
-        [System.Windows.Forms.MessageBox]::Show("Du måste ange en URL!", "Fel", 'OK', 'Error')
+        [System.Windows.Forms.MessageBox]::Show("Du maste ange en URL!","Fel", 'OK', 'Error')
         return
     }
 
     # Kontrollera att yt-dlp finns
     if (-not (Test-Path $ytDlpPath)) {
-        [System.Windows.Forms.MessageBox]::Show("Hittar inte yt-dlp.exe på: $ytDlpPath", "Fel", 'OK', 'Error')
+        [System.Windows.Forms.MessageBox]::Show("Hittar inte yt-dlp.exe pa: $ytDlpPath","Fel", 'OK', 'Error')
         return
     }
 
-    $textBoxStatus.AppendText("🚀 Startar nedladdning...`r`n")
-    $textBoxStatus.AppendText("📍 URL: $url`r`n`r`n")
+    $textBoxStatus.AppendText(">> Startar nedladdning...`r`n")
+    $textBoxStatus.AppendText(">> URL: $url`r`n`r`n")
 
     # Bygg yt-dlp kommando
     $ytArgs = @()
 
     # Output directory
-    $ytArgs += "-P", $outputDir
+    $ytArgs +="-P", $outputDir
 
     # === FORMAT OCH TYP ===
     if ($radioVideo.Checked) {
         # Video mode
-        $textBoxStatus.AppendText("📹 Laddar ner video`r`n")
+        $textBoxStatus.AppendText("[VIDEO] Laddar ner video`r`n")
 
         # Kvalitet
         $qualityMap = @{
-            'Bästa (2160p/4K)' = 'bestvideo[height<=2160]+bestaudio/best'
+            'Basta (2160p/4K)' = 'bestvideo[height<=2160]+bestaudio/best'
             '1440p (2K)' = 'bestvideo[height<=1440]+bestaudio/best'
             '1080p (Full HD)' = 'bestvideo[height<=1080]+bestaudio/best'
             '720p (HD)' = 'bestvideo[height<=720]+bestaudio/best'
@@ -248,145 +248,145 @@ $btnDownload.Add_Click({
             '240p' = 'bestvideo[height<=240]+bestaudio/best'
         }
         $selectedQuality = $comboQuality.SelectedItem.ToString()
-        $ytArgs += "-f", $qualityMap[$selectedQuality]
-        $textBoxStatus.AppendText("📊 Kvalitet: $selectedQuality`r`n")
+        $ytArgs +="-f", $qualityMap[$selectedQuality]
+        $textBoxStatus.AppendText("[KVALITET] $selectedQuality`r`n")
 
         # Output template
-        $ytArgs += "-o", "%(title)s.%(ext)s"
+        $ytArgs +="-o","%(title)s.%(ext)s"
 
         # Merge to mp4
-        $ytArgs += "--merge-output-format", "mp4"
+        $ytArgs +="--merge-output-format","mp4"
 
     } elseif ($radioAudio.Checked) {
         # Audio only (MP3)
-        $textBoxStatus.AppendText("🎵 Laddar ner bara ljud (MP3)`r`n")
-        $ytArgs += "-f", "bestaudio"
-        $ytArgs += "-x"  # Extract audio
-        $ytArgs += "--audio-format", "mp3"
-        $ytArgs += "--audio-quality", "0"  # Best quality
-        $ytArgs += "-o", "%(title)s.%(ext)s"
+        $textBoxStatus.AppendText("[AUDIO] Laddar ner bara ljud (MP3)`r`n")
+        $ytArgs +="-f","bestaudio"
+        $ytArgs +="-x"  # Extract audio
+        $ytArgs +="--audio-format","mp3"
+        $ytArgs +="--audio-quality","0"  # Best quality
+        $ytArgs +="-o","%(title)s.%(ext)s"
 
     } elseif ($radioSubsOnly.Checked) {
         # Subtitles only
-        $textBoxStatus.AppendText("📝 Laddar ner bara undertexter`r`n")
-        $ytArgs += "--skip-download"
-        $ytArgs += "--write-subs"
-        $ytArgs += "--write-auto-subs"
+        $textBoxStatus.AppendText("[SUBS] Laddar ner bara undertexter`r`n")
+        $ytArgs +="--skip-download"
+        $ytArgs +="--write-subs"
+        $ytArgs +="--write-auto-subs"
 
-        # Språk
+        # Sprak
         $langMap = @{
             'Svenska' = 'sv'
             'Engelska' = 'en'
-            'Alla tillgängliga' = 'all'
+            'Alla tillgangliga' = 'all'
         }
         $selectedLang = $comboSubLang.SelectedItem.ToString()
-        if ($selectedLang -ne 'Alla tillgängliga') {
-            $ytArgs += "--sub-langs", $langMap[$selectedLang]
+        if ($selectedLang -ne 'Alla tillgangliga') {
+            $ytArgs +="--sub-langs", $langMap[$selectedLang]
         }
 
-        $ytArgs += "-o", "%(title)s"
+        $ytArgs +="-o","%(title)s"
 
     } elseif ($radioDescOnly.Checked) {
         # Description only
-        $textBoxStatus.AppendText("📄 Laddar ner bara beskrivning`r`n")
-        $ytArgs += "--skip-download"
-        $ytArgs += "--write-description"
-        $ytArgs += "-o", "%(title)s"
+        $textBoxStatus.AppendText("[DESC] Laddar ner bara beskrivning`r`n")
+        $ytArgs +="--skip-download"
+        $ytArgs +="--write-description"
+        $ytArgs +="-o","%(title)s"
     }
 
-    # === UNDERTEXTER (för video/audio mode) ===
+    # === UNDERTEXTER (for video/audio mode) ===
     if ($checkDownloadSubs.Checked -and ($radioVideo.Checked -or $radioAudio.Checked)) {
-        $textBoxStatus.AppendText("📝 Inkluderar undertexter`r`n")
-        $ytArgs += "--write-subs"
-        $ytArgs += "--write-auto-subs"
+        $textBoxStatus.AppendText("[SUBS] Inkluderar undertexter`r`n")
+        $ytArgs +="--write-subs"
+        $ytArgs +="--write-auto-subs"
 
-        # Språk
+        # Sprak
         $langMap = @{
             'Svenska' = 'sv'
             'Engelska' = 'en'
-            'Alla tillgängliga' = 'all'
+            'Alla tillgangliga' = 'all'
         }
         $selectedLang = $comboSubLang.SelectedItem.ToString()
-        if ($selectedLang -ne 'Alla tillgängliga') {
-            $ytArgs += "--sub-langs", $langMap[$selectedLang]
+        if ($selectedLang -ne 'Alla tillgangliga') {
+            $ytArgs +="--sub-langs", $langMap[$selectedLang]
         }
 
         # Embed subtitles (only for video)
         if ($checkEmbedSubs.Checked -and $radioVideo.Checked) {
-            $textBoxStatus.AppendText("📝 Bäddar in undertexter i video`r`n")
-            $ytArgs += "--embed-subs"
+            $textBoxStatus.AppendText("[EMBED] Baddar in undertexter i video`r`n")
+            $ytArgs +="--embed-subs"
         }
     }
 
     # === BESKRIVNING ===
     if ($checkDescription.Checked -and -not $radioDescOnly.Checked) {
-        $textBoxStatus.AppendText("📄 Sparar beskrivning`r`n")
-        $ytArgs += "--write-description"
+        $textBoxStatus.AppendText("[DESC] Sparar beskrivning`r`n")
+        $ytArgs +="--write-description"
     }
 
     # === PLAYLIST HANTERING ===
     $maxVids = $numMaxVideos.Value
-    $ytArgs += "--playlist-end", $maxVids.ToString()
-    $textBoxStatus.AppendText("📋 Max antal videos: $maxVids`r`n")
+    $ytArgs +="--playlist-end", $maxVids.ToString()
+    $textBoxStatus.AppendText("[PLAYLIST] Max antal videos: $maxVids`r`n")
 
-    # === ÖVRIGA INSTÄLLNINGAR ===
-    $ytArgs += "--ffmpeg-location", $ffmpegPath
-    $ytArgs += "--no-check-certificates"
-    $ytArgs += "--no-warnings"
-    $ytArgs += "--progress"
+    # === OVRIGA INSTALLNINGAR ===
+    $ytArgs +="--ffmpeg-location", $ffmpegPath
+    $ytArgs +="--no-check-certificates"
+    $ytArgs +="--no-warnings"
+    $ytArgs +="--progress"
 
-    # Lägg till URL sist
+    # Lagg till URL sist
     $ytArgs += $url
 
-    $textBoxStatus.AppendText("`r`n⏳ Kör yt-dlp...`r`n")
-    $textBoxStatus.AppendText("─────────────────────────────────────────`r`n")
+    $textBoxStatus.AppendText("`r`n>> Kor yt-dlp...`r`n")
+    $textBoxStatus.AppendText("=========================================`r`n")
 
     # Disable button during download
     $btnDownload.Enabled = $false
-    $btnDownload.Text = "LADDAR NER..."
+    $btnDownload.Text ="LADDAR NER..."
     $form.Refresh()
 
     try {
-        # Kör yt-dlp
-        $process = Start-Process -FilePath $ytDlpPath -ArgumentList $ytArgs -NoNewWindow -Wait -PassThru -RedirectStandardOutput "$env:TEMP\ytdlp_output.txt" -RedirectStandardError "$env:TEMP\ytdlp_error.txt"
+        # Kor yt-dlp
+        $process = Start-Process -FilePath $ytDlpPath -ArgumentList $ytArgs -NoNewWindow -Wait -PassThru -RedirectStandardOutput"$env:TEMP\ytdlp_output.txt" -RedirectStandardError"$env:TEMP\ytdlp_error.txt"
 
-        # Läs output
-        if (Test-Path "$env:TEMP\ytdlp_output.txt") {
-            $output = Get-Content "$env:TEMP\ytdlp_output.txt" -Raw
+        # Las output
+        if (Test-Path"$env:TEMP\ytdlp_output.txt") {
+            $output = Get-Content"$env:TEMP\ytdlp_output.txt" -Raw
             $textBoxStatus.AppendText($output)
         }
 
         if ($process.ExitCode -eq 0) {
-            $textBoxStatus.AppendText("`r`n─────────────────────────────────────────`r`n")
-            $textBoxStatus.AppendText("✅ KLART! Filerna sparades i: $outputDir`r`n")
-            [System.Windows.Forms.MessageBox]::Show("Nedladdning klar!`n`nFilerna finns i:`n$outputDir", "Klart!", 'OK', 'Information')
+            $textBoxStatus.AppendText("`r`n=========================================`r`n")
+            $textBoxStatus.AppendText(">> KLART! Filerna sparades i: $outputDir`r`n")
+            [System.Windows.Forms.MessageBox]::Show("Nedladdning klar!`n`nFilerna finns i:`n$outputDir","Klart!", 'OK', 'Information')
         } else {
-            $errorOutput = ""
-            if (Test-Path "$env:TEMP\ytdlp_error.txt") {
-                $errorOutput = Get-Content "$env:TEMP\ytdlp_error.txt" -Raw
+            $errorOutput =""
+            if (Test-Path"$env:TEMP\ytdlp_error.txt") {
+                $errorOutput = Get-Content"$env:TEMP\ytdlp_error.txt" -Raw
             }
-            $textBoxStatus.AppendText("`r`n─────────────────────────────────────────`r`n")
-            $textBoxStatus.AppendText("❌ FEL uppstod!`r`n")
+            $textBoxStatus.AppendText("`r`n=========================================`r`n")
+            $textBoxStatus.AppendText(">> FEL uppstod!`r`n")
             $textBoxStatus.AppendText($errorOutput)
-            [System.Windows.Forms.MessageBox]::Show("Ett fel uppstod under nedladdningen. Se statusfönstret för detaljer.", "Fel", 'OK', 'Error')
+            [System.Windows.Forms.MessageBox]::Show("Ett fel uppstod under nedladdningen. Se statusfonstret for detaljer.","Fel", 'OK', 'Error')
         }
     } catch {
-        $textBoxStatus.AppendText("`r`n❌ FEL: $($_.Exception.Message)`r`n")
-        [System.Windows.Forms.MessageBox]::Show("Ett fel uppstod: $($_.Exception.Message)", "Fel", 'OK', 'Error')
+        $textBoxStatus.AppendText("`r`n>> FEL: $($_.Exception.Message)`r`n")
+        [System.Windows.Forms.MessageBox]::Show("Ett fel uppstod: $($_.Exception.Message)","Fel", 'OK', 'Error')
     } finally {
         # Re-enable button
         $btnDownload.Enabled = $true
-        $btnDownload.Text = "LADDA NER"
+        $btnDownload.Text ="LADDA NER"
 
         # Cleanup temp files
-        if (Test-Path "$env:TEMP\ytdlp_output.txt") { Remove-Item "$env:TEMP\ytdlp_output.txt" -Force }
-        if (Test-Path "$env:TEMP\ytdlp_error.txt") { Remove-Item "$env:TEMP\ytdlp_error.txt" -Force }
+        if (Test-Path"$env:TEMP\ytdlp_output.txt") { Remove-Item"$env:TEMP\ytdlp_output.txt" -Force }
+        if (Test-Path"$env:TEMP\ytdlp_error.txt") { Remove-Item"$env:TEMP\ytdlp_error.txt" -Force }
     }
 })
 
-# === VISA FORMULÄRET ===
-$textBoxStatus.AppendText("✅ YouTube Downloader GUI redo!`r`n")
-$textBoxStatus.AppendText("📁 Nedladdningar sparas i: $outputDir`r`n`r`n")
-$textBoxStatus.AppendText("Ange en URL och välj dina alternativ, sedan tryck på 'LADDA NER'`r`n")
+# === VISA FORMULARET ===
+$textBoxStatus.AppendText(">> YouTube Downloader GUI redo!`r`n")
+$textBoxStatus.AppendText(">> Nedladdningar sparas i: $outputDir`r`n`r`n")
+$textBoxStatus.AppendText("Ange en URL och valj dina alternativ, sedan tryck pa 'LADDA NER'`r`n")
 
 [void]$form.ShowDialog()
