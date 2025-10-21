@@ -212,7 +212,7 @@ $form.Controls.Add($btnDownload)
 # === NEDLADDNINGSLOGIK ===
 $btnDownload.Add_Click({
     # Rensa status
-    $textBoxStatus.Text =""
+    $textBoxStatus.Text = ""
 
     # Validera URL
     $url = $textBoxUrl.Text.Trim()
@@ -347,12 +347,12 @@ $btnDownload.Add_Click({
 
     # Disable button during download
     $btnDownload.Enabled = $false
-    $btnDownload.Text ="LADDAR NER..."
+    $btnDownload.Text = "LADDAR NER..."
     $form.Refresh()
 
     try {
         # Kor yt-dlp
-        $process = Start-Process -FilePath $ytDlpPath -ArgumentList $ytArgs -NoNewWindow -Wait -PassThru -RedirectStandardOutput"$env:TEMP\ytdlp_output.txt" -RedirectStandardError"$env:TEMP\ytdlp_error.txt"
+        $process = Start-Process -FilePath $ytDlpPath -ArgumentList $ytArgs -NoNewWindow -Wait -PassThru -RedirectStandardOutput "$env:TEMP\ytdlp_output.txt" -RedirectStandardError "$env:TEMP\ytdlp_error.txt"
 
         # Las output
         if (Test-Path "$env:TEMP\ytdlp_output.txt") {
@@ -380,7 +380,7 @@ $btnDownload.Add_Click({
     } finally {
         # Re-enable button
         $btnDownload.Enabled = $true
-        $btnDownload.Text ="LADDA NER"
+        $btnDownload.Text = "LADDA NER"
 
         # Cleanup temp files
         if (Test-Path "$env:TEMP\ytdlp_output.txt") { Remove-Item "$env:TEMP\ytdlp_output.txt" -Force }
