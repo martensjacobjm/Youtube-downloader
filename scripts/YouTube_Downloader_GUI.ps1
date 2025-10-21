@@ -9,7 +9,7 @@ Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 
 # === KONFIGURATION ===
-$baseDir = "C:\Users\$env:USERNAME\OneDrive - Dala VS Varme & Sanitet\Privat\Youtube download"
+$baseDir = "C:\Users\$env:USERNAME\OneDrive - Dala VS Värme & Sanitet\Privat\Youtube download"
 $ytDlpPath = Join-Path -Path $baseDir -ChildPath "yt-dlp.exe"
 $ffmpegPath = Join-Path -Path $baseDir -ChildPath "ffmpeg.exe"
 $outputDir = Join-Path -Path $baseDir -ChildPath "downloaded"
