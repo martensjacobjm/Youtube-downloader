@@ -4,9 +4,15 @@
 
 ## Versioner
 
-Detta projekt innehåller två versioner av downloader-scriptet:
+Detta projekt innehåller tre versioner av downloader-scriptet:
 
-### 📺 Version 8 (INTERACTIVE) - **Rekommenderas för de flesta användare**
+### 🖥️ Version 9 (GUI) - **ENKLAST! Rekommenderas för alla användare**
+- ✅ **Grafiskt gränssnitt** - Klicka och välj allt med musen
+- ✅ Inga konfigurationsfiler eller kommandon
+- ✅ Alla alternativ synliga direkt i GUI:n
+- ✅ Perfekt för alla användare, särskilt nybörjare
+
+### 📺 Version 8 (INTERACTIVE) - Interaktiv kommandorad
 - ✅ Interaktiv guide som frågar vad du vill ladda ner
 - ✅ Bädda in undertexter direkt i videofilen
 - ✅ Användarvänligt - inga konfigurationsfiler att redigera
@@ -20,23 +26,50 @@ Detta projekt innehåller två versioner av downloader-scriptet:
 
 ## Snabbstart
 
-### Enklaste sättet (Windows):
+### 🖥️ ENKLASTE SÄTTET - GUI (Grafiskt gränssnitt):
+
+1. **Dubbelklicka på `RUN_GUI.bat`**
+2. Fyll i URL och välj alternativ i fönstret
+3. Klicka på "LADDA NER"
+4. Klart!
+
+### 📺 Alternativ 2 - Interaktiv kommandorad:
 
 1. **Dubbelklicka på `RUN_DOWNLOADER.bat`**
 2. Följ instruktionerna på skärmen
 3. Klart!
 
-### Alternativt (PowerShell):
+### 📋 Alternativ 3 - Manuellt (PowerShell):
 
 ```powershell
-# Version 8 (Interaktiv)
+# Version 9 (GUI - grafiskt gränssnitt)
+.\scripts\YouTube_Downloader_GUI.ps1
+
+# Version 8 (Interaktiv kommandorad)
 .\scripts\YouTube_Downloader_v8_INTERACTIVE.ps1
 
-# Version 7 (Klassisk)
+# Version 7 (Klassisk - konfigurationsfil)
 .\scripts\youtube-downloader.ps1
 ```
 
 ## Funktioner
+
+### Version 9 - GUI (GRAFISKT GRÄNSSNITT)
+- ✅ **Windows Forms GUI** - Klicka och välj allt visuellt
+- ✅ **Val av innehållstyp:**
+  - Video (med eller utan undertexter)
+  - Bara ljud (MP3)
+  - Bara undertexter
+  - Bara beskrivning (textfil)
+- ✅ **Kvalitetsval:** 4K, 2K, 1080p, 720p, 480p, 360p, 240p
+- ✅ **Undertextalternativ:**
+  - Ladda ner undertexter
+  - Bädda in undertexter i video
+  - Språkval (Svenska, Engelska, Alla)
+- ✅ **Extra funktioner:**
+  - Spara beskrivning i textfil
+  - Max antal videos för spellistor
+- ✅ **Visuell feedback** - Se nedladdningsstatus direkt i GUI:n
 
 ### Version 8 - INTERACTIVE
 - ✅ **Interaktiv konfiguration** - Slipper editera script-filer
@@ -151,10 +184,13 @@ $sleepSubtitles = 8
 
 ```
 Youtube-downloader/
-├── RUN_DOWNLOADER.bat           # Enkel launcher (dubbelklicka)
+├── RUN_GUI.bat                  # GUI launcher (dubbelklicka - ENKLAST!)
+├── RUN_GUI.ps1                  # PowerShell GUI launcher
+├── RUN_DOWNLOADER.bat           # Interaktiv launcher (dubbelklicka)
 ├── RUN_DOWNLOADER.ps1           # PowerShell launcher
 ├── scripts/
-│   ├── YouTube_Downloader_v8_INTERACTIVE.ps1  # Version 8 (rekommenderas)
+│   ├── YouTube_Downloader_GUI.ps1             # Version 9 (GUI - enklast!)
+│   ├── YouTube_Downloader_v8_INTERACTIVE.ps1  # Version 8 (interaktiv)
 │   └── youtube-downloader.ps1                 # Version 7 (klassisk)
 ├── examples/
 │   ├── config-basic.ps1          # Grundläggande konfiguration (v7)
@@ -248,9 +284,11 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 
 | Scenario | Rekommenderad version |
 |----------|----------------------|
-| Du är nybörjare | **Version 8 (INTERACTIVE)** |
-| Engångsnedladdning | **Version 8 (INTERACTIVE)** |
-| Vill ha embedded subtitles | **Version 8 (INTERACTIVE)** |
+| Du är nybörjare | **Version 9 (GUI)** |
+| Vill ha grafiskt gränssnitt | **Version 9 (GUI)** |
+| Engångsnedladdning | **Version 9 (GUI)** eller Version 8 (INTERACTIVE) |
+| Vill ha embedded subtitles | **Version 9 (GUI)** eller Version 8 (INTERACTIVE) |
+| Vill ladda ner bara ljud (MP3) | **Version 9 (GUI)** |
 | Återkommande nedladdningar | Version 7 (CLASSIC) |
 | Automation/scheduled tasks | Version 7 (CLASSIC) |
 | Behöver TXT-format | Version 7 (CLASSIC) |
@@ -282,18 +320,25 @@ MIT License - Se [LICENSE](LICENSE) för detaljer.
 
 Powerful PowerShell scripts for downloading YouTube videos and subtitles with full playlist support.
 
-**Two Versions:**
+**Three Versions:**
+- **Version 9 (GUI)** - Windows Forms graphical interface - EASIEST!
 - **Version 8 (INTERACTIVE)** - User-friendly with interactive prompts and embedded subtitle support
 - **Version 7 (CLASSIC)** - Configuration-based for advanced users and automation
 
 **Features:**
+- **GUI Version:**
+  - Visual interface with clickable options
+  - Choose content type: Video, Audio (MP3), Subtitles only, Description only
+  - Quality selection: 4K, 2K, 1080p, 720p, 480p, 360p, 240p
+  - Subtitle options: Download, embed, language selection
+  - Real-time download status
 - Download videos in highest quality (MP4 with H.264 + AAC)
 - Download subtitles in multiple formats (VTT, SRT, TXT)
 - Full YouTube playlist support
 - Automatic subtitle format conversion
 - Rate-limiting to avoid API restrictions
 - Progress tracking for resumable downloads
-- Embedded subtitles (v8 only)
+- Embedded subtitles (v8 & v9)
 
 **Requirements:**
 - Windows with PowerShell 5.1+
@@ -301,6 +346,8 @@ Powerful PowerShell scripts for downloading YouTube videos and subtitles with fu
 - ffmpeg
 
 **Quick Start:**
-Double-click `RUN_DOWNLOADER.bat` or run the scripts directly with PowerShell.
+- **Easiest:** Double-click `RUN_GUI.bat` for graphical interface
+- **Alternative:** Double-click `RUN_DOWNLOADER.bat` for interactive command-line
+- **Manual:** Run the scripts directly with PowerShell
 
 See the Swedish documentation above for detailed usage instructions.
