@@ -351,8 +351,8 @@ $btnDownload.Add_Click({
         $process = Start-Process -FilePath $ytDlpPath -ArgumentList $ytArgs -NoNewWindow -Wait -PassThru -RedirectStandardOutput"$env:TEMP\ytdlp_output.txt" -RedirectStandardError"$env:TEMP\ytdlp_error.txt"
 
         # Las output
-        if (Test-Path"$env:TEMP\ytdlp_output.txt") {
-            $output = Get-Content"$env:TEMP\ytdlp_output.txt" -Raw
+        if (Test-Path "$env:TEMP\ytdlp_output.txt") {
+            $output = Get-Content "$env:TEMP\ytdlp_output.txt" -Raw
             $textBoxStatus.AppendText($output)
         }
 
@@ -362,8 +362,8 @@ $btnDownload.Add_Click({
             [System.Windows.Forms.MessageBox]::Show("Nedladdning klar!`n`nFilerna finns i:`n$outputDir","Klart!", 'OK', 'Information')
         } else {
             $errorOutput =""
-            if (Test-Path"$env:TEMP\ytdlp_error.txt") {
-                $errorOutput = Get-Content"$env:TEMP\ytdlp_error.txt" -Raw
+            if (Test-Path "$env:TEMP\ytdlp_error.txt") {
+                $errorOutput = Get-Content "$env:TEMP\ytdlp_error.txt" -Raw
             }
             $textBoxStatus.AppendText("`r`n=========================================`r`n")
             $textBoxStatus.AppendText(">> FEL uppstod!`r`n")
@@ -379,8 +379,8 @@ $btnDownload.Add_Click({
         $btnDownload.Text ="LADDA NER"
 
         # Cleanup temp files
-        if (Test-Path"$env:TEMP\ytdlp_output.txt") { Remove-Item"$env:TEMP\ytdlp_output.txt" -Force }
-        if (Test-Path"$env:TEMP\ytdlp_error.txt") { Remove-Item"$env:TEMP\ytdlp_error.txt" -Force }
+        if (Test-Path "$env:TEMP\ytdlp_output.txt") { Remove-Item "$env:TEMP\ytdlp_output.txt" -Force }
+        if (Test-Path "$env:TEMP\ytdlp_error.txt") { Remove-Item "$env:TEMP\ytdlp_error.txt" -Force }
     }
 })
 
