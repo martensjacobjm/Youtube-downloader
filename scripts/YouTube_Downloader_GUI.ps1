@@ -9,7 +9,11 @@ Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 
 # === KONFIGURATION ===
-$baseDir = "C:\Users\$env:USERNAME\OneDrive - Dala VS Värme & Sanitet\Privat\Youtube download"
+# Hitta huvudmappen (en nivå upp från projektmappen)
+$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$projectRoot = Split-Path -Parent $scriptDir
+$baseDir = Split-Path -Parent $projectRoot
+
 $ytDlpPath = Join-Path -Path $baseDir -ChildPath "yt-dlp.exe"
 $ffmpegPath = Join-Path -Path $baseDir -ChildPath "ffmpeg.exe"
 $outputDir = Join-Path -Path $baseDir -ChildPath "downloaded"
