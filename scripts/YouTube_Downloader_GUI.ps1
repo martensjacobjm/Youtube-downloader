@@ -9,10 +9,10 @@ Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 
 # === KONFIGURATION ===
-$baseDir ="C:\Users\$env:USERNAME\OneDrive - Dala VS Varme & Sanitet\Privat\Youtube download"
-$ytDlpPath = Join-Path $baseDir"yt-dlp.exe"
-$ffmpegPath = Join-Path $baseDir"ffmpeg.exe"
-$outputDir = Join-Path $baseDir"downloaded"
+$baseDir = "C:\Users\$env:USERNAME\OneDrive - Dala VS Värme & Sanitet\Privat\Youtube download"
+$ytDlpPath = Join-Path $baseDir "yt-dlp.exe"
+$ffmpegPath = Join-Path $baseDir "ffmpeg.exe"
+$outputDir = Join-Path $baseDir "downloaded"
 
 # Skapa output-mapp om den inte finns
 if (-not (Test-Path $outputDir)) {
