@@ -217,13 +217,13 @@ $btnDownload.Add_Click({
     # Validera URL
     $url = $textBoxUrl.Text.Trim()
     if ([string]::IsNullOrWhiteSpace($url)) {
-        [System.Windows.Forms.MessageBox]::Show("Du maste ange en URL!","Fel", 'OK', 'Error')
+        [System.Windows.Forms.MessageBox]::Show("Du maste ange en URL!", "Fel", 'OK', 'Error')
         return
     }
 
     # Kontrollera att yt-dlp finns
     if (-not (Test-Path $ytDlpPath)) {
-        [System.Windows.Forms.MessageBox]::Show("Hittar inte yt-dlp.exe pa: $ytDlpPath","Fel", 'OK', 'Error')
+        [System.Windows.Forms.MessageBox]::Show("Hittar inte yt-dlp.exe pa: $ytDlpPath", "Fel", 'OK', 'Error')
         return
     }
 
@@ -352,39 +352,42 @@ $btnDownload.Add_Click({
 
     try {
         # Kor yt-dlp
-        $process = Start-Process -FilePath $ytDlpPath -ArgumentList $ytArgs -NoNewWindow -Wait -PassThru -RedirectStandardOutput "$env:TEMP\ytdlp_output.txt" -RedirectStandardError "$env:TEMP\ytdlp_error.txt"
+        $outputFile = Join-Path -Path $env:TEMP -ChildPath "ytdlp_output.txt"
+        $errorFile = Join-Path -Path $env:TEMP -ChildPath "ytdlp_error.txt"
+
+        $process = Start-Process -FilePath $ytDlpPath -ArgumentList $ytArgs -NoNewWindow -Wait -PassThru -RedirectStandardOutput $outputFile -RedirectStandardError $errorFile
 
         # Las output
-        if (Test-Path "$env:TEMP\ytdlp_output.txt") {
-            $output = Get-Content "$env:TEMP\ytdlp_output.txt" -Raw
+        if (Test-Path $outputFile) {
+            $output = Get-Content $outputFile -Raw
             $textBoxStatus.AppendText($output)
         }
 
         if ($process.ExitCode -eq 0) {
             $textBoxStatus.AppendText("`r`n=========================================`r`n")
             $textBoxStatus.AppendText(">> KLART! Filerna sparades i: $outputDir`r`n")
-            [System.Windows.Forms.MessageBox]::Show("Nedladdning klar!`n`nFilerna finns i:`n$outputDir","Klart!", 'OK', 'Information')
+            [System.Windows.Forms.MessageBox]::Show("Nedladdning klar!`n`nFilerna finns i:`n$outputDir", "Klart!", 'OK', 'Information')
         } else {
-            $errorOutput =""
-            if (Test-Path "$env:TEMP\ytdlp_error.txt") {
-                $errorOutput = Get-Content "$env:TEMP\ytdlp_error.txt" -Raw
+            $errorOutput = ""
+            if (Test-Path $errorFile) {
+                $errorOutput = Get-Content $errorFile -Raw
             }
             $textBoxStatus.AppendText("`r`n=========================================`r`n")
             $textBoxStatus.AppendText(">> FEL uppstod!`r`n")
             $textBoxStatus.AppendText($errorOutput)
-            [System.Windows.Forms.MessageBox]::Show("Ett fel uppstod under nedladdningen. Se statusfonstret for detaljer.","Fel", 'OK', 'Error')
+            [System.Windows.Forms.MessageBox]::Show("Ett fel uppstod under nedladdningen. Se statusfonstret for detaljer.", "Fel", 'OK', 'Error')
         }
     } catch {
         $textBoxStatus.AppendText("`r`n>> FEL: $($_.Exception.Message)`r`n")
-        [System.Windows.Forms.MessageBox]::Show("Ett fel uppstod: $($_.Exception.Message)","Fel", 'OK', 'Error')
+        [System.Windows.Forms.MessageBox]::Show("Ett fel uppstod: $($_.Exception.Message)", "Fel", 'OK', 'Error')
     } finally {
         # Re-enable button
         $btnDownload.Enabled = $true
         $btnDownload.Text = "LADDA NER"
 
         # Cleanup temp files
-        if (Test-Path "$env:TEMP\ytdlp_output.txt") { Remove-Item "$env:TEMP\ytdlp_output.txt" -Force }
-        if (Test-Path "$env:TEMP\ytdlp_error.txt") { Remove-Item "$env:TEMP\ytdlp_error.txt" -Force }
+        if (Test-Path $outputFile) { Remove-Item $outputFile -Force }
+        if (Test-Path $errorFile) { Remove-Item $errorFile -Force }
     }
 })
 
