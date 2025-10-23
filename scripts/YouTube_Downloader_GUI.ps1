@@ -209,6 +209,112 @@ $btnDownload.BackColor = [System.Drawing.Color]::Green
 $btnDownload.ForeColor = [System.Drawing.Color]::White
 $form.Controls.Add($btnDownload)
 
+# === FUNKTIONER FOR TXT-GENERERING ===
+function Parse-SubtitleFile {
+    param([Parameter(Mandatory)][string]$Path)
+
+    if (-not (Test-Path -LiteralPath $Path)) { return @() }
+
+    $raw = (Get-Content -LiteralPath $Path -Encoding UTF8) -join "`n"
+    if (-not $raw) { return @() }
+
+    $raw = $raw -replace "(?m)^WEBVTT.*?`n", ""
+    $raw = $raw -replace "(?m)^NOTE.*?`n`n", ""
+    $raw = $raw -replace "(?m)\s*(align|position|line|size):[^\n]+", ""
+    $raw = $raw -replace "</?[^>]+>", ""
+
+    $blocks = $raw -split "`n`n" | Where-Object { $_.Trim() }
+    $cues = @()
+
+    foreach ($block in $blocks) {
+        $lines = $block -split "`n" | Where-Object { $_.Trim() }
+        if ($lines.Count -eq 0) { continue }
+
+        $timestamp = $null
+        $textLines = @()
+
+        foreach ($line in $lines) {
+            $trimmed = $line.Trim()
+            if ($trimmed -match '^\d{1,6}$') { continue }
+            if ($trimmed -match '^\d{2}:\d{2}:\d{2}[.,]\d{3}\s*-->\s*\d{2}:\d{2}:\d{2}[.,]\d{3}') {
+                $timestamp = $trimmed -replace ',', '.'
+                continue
+            }
+            if ($trimmed) { $textLines += $trimmed }
+        }
+
+        $text = ($textLines -join " ").Trim()
+        if ($timestamp -and $text) {
+            $cues += @{ Timestamp = $timestamp; Text = $text }
+        }
+    }
+
+    return $cues
+}
+
+function Remove-ConsecutiveDuplicates {
+    param([Parameter(Mandatory)][array]$Cues)
+
+    if ($Cues.Count -eq 0) { return @() }
+
+    $result = @()
+    $previousText = $null
+
+    foreach ($cue in $Cues) {
+        if ($cue.Text -ne $previousText) {
+            $result += $cue
+            $previousText = $cue.Text
+        }
+    }
+
+    return $result
+}
+
+function Get-VideoIDFromFilename {
+    param([string]$Filename)
+
+    if ($Filename -match '\[([A-Za-z0-9_-]{6,})\]') {
+        return $matches[1]
+    }
+    return $null
+}
+
+function Write-SubtitleTxt {
+    param(
+        [Parameter(Mandatory)][array]$Cues,
+        [Parameter(Mandatory)][string]$OutputPath,
+        [Parameter(Mandatory)][string]$VideoID,
+        [Parameter(Mandatory)][string]$OutputDir
+    )
+
+    $output = New-Object System.Text.StringBuilder
+
+    $descFile = Get-ChildItem -Path $OutputDir -Filter "*[$VideoID].description" -File | Select-Object -First 1
+    if ($descFile -and (Test-Path -LiteralPath $descFile.FullName)) {
+        $desc = (Get-Content -LiteralPath $descFile.FullName -Encoding UTF8) -join "`n"
+        if ($desc.Trim()) {
+            $null = $output.AppendLine("=" * 80)
+            $null = $output.AppendLine("VIDEO DESCRIPTION")
+            $null = $output.AppendLine("=" * 80)
+            $null = $output.AppendLine($desc.Trim())
+            $null = $output.AppendLine("")
+            $null = $output.AppendLine("=" * 80)
+            $null = $output.AppendLine("SUBTITLES")
+            $null = $output.AppendLine("=" * 80)
+            $null = $output.AppendLine("")
+        }
+    }
+
+    foreach ($cue in $Cues) {
+        $null = $output.AppendLine($cue.Timestamp)
+        $null = $output.AppendLine($cue.Text)
+        $null = $output.AppendLine("")
+    }
+
+    $finalText = $output.ToString().Trim()
+    [IO.File]::WriteAllText($OutputPath, $finalText, [Text.UTF8Encoding]::new($false))
+}
+
 # === NEDLADDNINGSLOGIK ===
 $btnDownload.Add_Click({
     # Rensa status
@@ -342,6 +448,7 @@ $btnDownload.Add_Click({
     # === OVRIGA INSTALLNINGAR ===
     $ytArgs += "--ffmpeg-location"
     $ytArgs += "`"$baseDir`""
+    $ytArgs += "--yes-playlist"  # VIKTIGT: Tvingar spellista-nedladdning aven med &index=X
 
     # Lagg till URL sist
     $ytArgs += $url
@@ -383,6 +490,43 @@ $btnDownload.Add_Click({
         }
 
         if ($process.ExitCode -eq 0) {
+            # === GENERERA TXT-FILER FRAN VTT ===
+            $textBoxStatus.AppendText("`r`n>> Genererar TXT-filer fran undertexter...`r`n")
+
+            $vttFiles = @(Get-ChildItem -Path $outputDir -Filter "*.vtt" -File)
+
+            if ($vttFiles.Count -gt 0) {
+                foreach ($vtt in $vttFiles) {
+                    $txtPath = "$($vtt.FullName).txt"
+
+                    # Skippa om redan finns
+                    if ((Test-Path $txtPath) -and (Get-Item $txtPath).Length -gt 0) {
+                        continue
+                    }
+
+                    try {
+                        $videoID = Get-VideoIDFromFilename -Filename $vtt.Name
+                        if (-not $videoID) {
+                            $textBoxStatus.AppendText("   VARNING: Kunde inte extrahera video-ID fran $($vtt.Name)`r`n")
+                            continue
+                        }
+
+                        $cues = Parse-SubtitleFile -Path $vtt.FullName
+
+                        if ($cues.Count -gt 0) {
+                            $cleaned = Remove-ConsecutiveDuplicates -Cues $cues
+                            Write-SubtitleTxt -Cues $cleaned -OutputPath $txtPath -VideoID $videoID -OutputDir $outputDir
+                            $textBoxStatus.AppendText("   > Skapade: $($vtt.Name).txt ($($cleaned.Count) cues)`r`n")
+                        }
+                    } catch {
+                        $textBoxStatus.AppendText("   VARNING: TXT-generering failade for $($vtt.Name): $($_.Exception.Message)`r`n")
+                    }
+                }
+                $textBoxStatus.AppendText(">> TXT-filer klara!`r`n")
+            } else {
+                $textBoxStatus.AppendText("   Inga VTT-filer hittades (ingen txt att skapa)`r`n")
+            }
+
             $textBoxStatus.AppendText("`r`n=========================================`r`n")
             $textBoxStatus.AppendText(">> KLART! Filerna sparades i: $outputDir`r`n")
             [System.Windows.Forms.MessageBox]::Show("Nedladdning klar!`n`nFilerna finns i:`n$outputDir", "Klart!", 'OK', 'Information')
