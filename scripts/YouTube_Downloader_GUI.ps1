@@ -16,11 +16,24 @@ $baseDir = Split-Path -Parent $projectRoot
 
 $ytDlpPath = Join-Path -Path $baseDir -ChildPath "yt-dlp.exe"
 $ffmpegPath = Join-Path -Path $baseDir -ChildPath "ffmpeg.exe"
+$ffprobePath = Join-Path -Path $baseDir -ChildPath "ffprobe.exe"
 $outputDir = Join-Path -Path $baseDir -ChildPath "downloaded"
 
 # Skapa output-mapp om den inte finns
 if (-not (Test-Path $outputDir)) {
     New-Item -ItemType Directory -Path $outputDir -Force | Out-Null
+}
+
+# Varna om ffprobe saknas
+$global:ffprobeWarningShown = $false
+if (-not (Test-Path $ffprobePath)) {
+    $global:ffprobeWarningShown = $true
+}
+
+# Kolla om outputDir ar i OneDrive (kan orsaka fillaasningsproblem)
+$global:oneDriveWarningShown = $false
+if ($outputDir -match 'OneDrive') {
+    $global:oneDriveWarningShown = $true
 }
 
 # === SKAPA FORMULAR ===
@@ -524,31 +537,102 @@ $btnDownload.Add_Click({
     $form.Refresh()
 
     try {
-        # Kor yt-dlp
+        # Kor yt-dlp ASYNKRONT for att GUI ska forbli responsiv
         $outputFile = Join-Path -Path $env:TEMP -ChildPath "ytdlp_output.txt"
         $errorFile = Join-Path -Path $env:TEMP -ChildPath "ytdlp_error.txt"
 
-        $process = Start-Process -FilePath $ytDlpPath -ArgumentList $ytArgs -NoNewWindow -Wait -PassThru -RedirectStandardOutput $outputFile -RedirectStandardError $errorFile
+        # Rensa gamla output-filer
+        if (Test-Path $outputFile) { Remove-Item $outputFile -Force }
+        if (Test-Path $errorFile) { Remove-Item $errorFile -Force }
 
-        # Las output och filtrera progress-spam
+        # Starta process UTAN -Wait for att GUI ska forbli responsiv
+        $process = Start-Process -FilePath $ytDlpPath -ArgumentList $ytArgs -NoNewWindow -PassThru -RedirectStandardOutput $outputFile -RedirectStandardError $errorFile
+
+        # Variabel for att spara senaste positionen i output-filen
+        $lastPosition = 0
+        $lastProgressLine = ""
+
+        # Vanta medan processen kor och uppdatera GUI live
+        while (-not $process.HasExited) {
+            # Las ny output sedan senaste gangent
+            if (Test-Path $outputFile) {
+                try {
+                    $fileStream = [System.IO.File]::Open($outputFile, 'Open', 'Read', 'ReadWrite')
+                    $fileStream.Position = $lastPosition
+                    $reader = New-Object System.IO.StreamReader($fileStream)
+                    $newContent = $reader.ReadToEnd()
+                    $lastPosition = $fileStream.Position
+                    $reader.Close()
+                    $fileStream.Close()
+
+                    if ($newContent) {
+                        $newLines = $newContent -split "`n"
+                        foreach ($line in $newLines) {
+                            $trimmedLine = $line.Trim()
+                            if (-not $trimmedLine) { continue }
+
+                            # Filtrera progress-spam MEN visa senaste progress
+                            if ($trimmedLine -match '^\[download\]\s+\d+\.\d+%') {
+                                # Spara senaste progress-rad
+                                $lastProgressLine = $trimmedLine
+                            } elseif ($trimmedLine -match '^\[download\]\s+100\.0% of ~') {
+                                # Skippa dessa rader
+                                continue
+                            } else {
+                                # Visa vanliga rader
+                                $textBoxStatus.AppendText("$trimmedLine`r`n")
+                                $textBoxStatus.SelectionStart = $textBoxStatus.Text.Length
+                                $textBoxStatus.ScrollToCaret()
+                            }
+                        }
+
+                        # Uppdatera knapptext med senaste progress
+                        if ($lastProgressLine) {
+                            if ($lastProgressLine -match '\[download\]\s+([\d.]+)%') {
+                                $btnDownload.Text = "LADDAR NER... $($matches[1])%"
+                            }
+                        }
+                    }
+                } catch {
+                    # Ignorera fel vid lasning (filen kan vara laast)
+                }
+            }
+
+            # Lat GUI uppdatera sig sjalv
+            [System.Windows.Forms.Application]::DoEvents()
+            Start-Sleep -Milliseconds 100
+        }
+
+        # Vanta pa att processen verkligen ar klar
+        $process.WaitForExit()
+
+        # Las eventuell kvarvarande output
         if (Test-Path $outputFile) {
-            $allLines = Get-Content $outputFile
-            $filteredLines = $allLines | Where-Object {
-                # Behall alla rader UTOM progress-uppdateringar
-                $_ -notmatch '^\[download\]\s+\d+\.\d+%' -and
-                $_ -notmatch '^\[download\]\s+100\.0% of ~'
-            }
+            try {
+                $fileStream = [System.IO.File]::Open($outputFile, 'Open', 'Read', 'ReadWrite')
+                $fileStream.Position = $lastPosition
+                $reader = New-Object System.IO.StreamReader($fileStream)
+                $remainingContent = $reader.ReadToEnd()
+                $reader.Close()
+                $fileStream.Close()
 
-            # Lagg till viktig information
-            foreach ($line in $filteredLines) {
-                $textBoxStatus.AppendText("$line`r`n")
+                if ($remainingContent) {
+                    $remainingLines = $remainingContent -split "`n"
+                    foreach ($line in $remainingLines) {
+                        $trimmedLine = $line.Trim()
+                        if ($trimmedLine -and $trimmedLine -notmatch '^\[download\]\s+\d+\.\d+%' -and $trimmedLine -notmatch '^\[download\]\s+100\.0% of ~') {
+                            $textBoxStatus.AppendText("$trimmedLine`r`n")
+                        }
+                    }
+                }
+            } catch {
+                # Ignorera fel
             }
+        }
 
-            # Lagg till slutlig progress-rad om nedladdning slutford
-            $finalProgress = $allLines | Where-Object { $_ -match '^\[download\] 100% of\s+[\d.]+\w+iB in' } | Select-Object -Last 1
-            if ($finalProgress) {
-                $textBoxStatus.AppendText("$finalProgress`r`n")
-            }
+        # Visa slutlig progress om det finns
+        if ($lastProgressLine -match '100') {
+            $textBoxStatus.AppendText("$lastProgressLine`r`n")
         }
 
         if ($process.ExitCode -eq 0) {
@@ -600,6 +684,13 @@ $btnDownload.Add_Click({
             $textBoxStatus.AppendText("`r`n=========================================`r`n")
             $textBoxStatus.AppendText(">> FEL uppstod!`r`n")
             $textBoxStatus.AppendText($errorOutput)
+
+            # Extra information om det ar ett OneDrive-lasningsproblem
+            if ($errorOutput -match 'Access.*Denied' -or $errorOutput -match 'Atkomst nekad') {
+                $textBoxStatus.AppendText("`r`n>> TIPS: 'Access Denied' kan bero pa att OneDrive laser filen.`r`n")
+                $textBoxStatus.AppendText("   Forslag: Pausa OneDrive-synkronisering tillfalligt och forsok igen.`r`n")
+            }
+
             [System.Windows.Forms.MessageBox]::Show("Ett fel uppstod under nedladdningen. Se statusfonstret for detaljer.", "Fel", 'OK', 'Error')
         }
     } catch {
@@ -619,6 +710,20 @@ $btnDownload.Add_Click({
 # === VISA FORMULARET ===
 $textBoxStatus.AppendText(">> YouTube Downloader GUI redo!`r`n")
 $textBoxStatus.AppendText(">> Nedladdningar sparas i: $outputDir`r`n`r`n")
+
+# Visa varningar om problem upptackts
+if ($global:ffprobeWarningShown) {
+    $textBoxStatus.AppendText("VARNING: ffprobe.exe saknas i $baseDir`r`n")
+    $textBoxStatus.AppendText("  Detta ar OK, men metadata kan inte extraheras.`r`n")
+    $textBoxStatus.AppendText("  Ladda ner ffprobe.exe fran https://ffmpeg.org/download.html`r`n`r`n")
+}
+
+if ($global:oneDriveWarningShown) {
+    $textBoxStatus.AppendText("OBSERVERA: Nedladdningar sparas i OneDrive-mapp!`r`n")
+    $textBoxStatus.AppendText("  OneDrive kan lasa filer under synkronisering.`r`n")
+    $textBoxStatus.AppendText("  Om du far 'Access Denied'-fel, pausa OneDrive-synk tillfalligt.`r`n`r`n")
+}
+
 $textBoxStatus.AppendText("Ange en URL och valj dina alternativ, sedan tryck pa 'LADDA NER'`r`n")
 
 [void]$form.ShowDialog()
