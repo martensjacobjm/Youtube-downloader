@@ -242,25 +242,22 @@ $btnDownload.Add_Click({
         # Video mode
         $textBoxStatus.AppendText("[VIDEO] Laddar ner video`r`n")
 
-        # Kvalitet
-        $qualityMap = @{
-            'Basta (2160p/4K)' = 'bestvideo[height<=2160]+bestaudio/best'
-            '1440p (2K)' = 'bestvideo[height<=1440]+bestaudio/best'
-            '1080p (Full HD)' = 'bestvideo[height<=1080]+bestaudio/best'
-            '720p (HD)' = 'bestvideo[height<=720]+bestaudio/best'
-            '480p' = 'bestvideo[height<=480]+bestaudio/best'
-            '360p' = 'bestvideo[height<=360]+bestaudio/best'
-            '240p' = 'bestvideo[height<=240]+bestaudio/best'
-        }
-        $selectedQuality = $comboQuality.SelectedItem.ToString()
-        $ytArgs += "-f", $qualityMap[$selectedQuality]
-        $textBoxStatus.AppendText("[KVALITET] $selectedQuality`r`n")
+        # VIKTIGT: Anvand samma parametrar som det fungerande scriptet!
+        $ytArgs += "-S"
+        $ytArgs += "ext:mp4:m4a,vcodec:h264,acodec:aac"
+        $ytArgs += "-f"
+        $ytArgs += "bv*+ba/best"
+        $ytArgs += "--merge-output-format"
+        $ytArgs += "mp4"
+        $ytArgs += "--embed-metadata"
+        $ytArgs += "--remux-video"
+        $ytArgs += "mp4"
 
         # Output template
-        $ytArgs += "-o","%(title)s.%(ext)s"
+        $ytArgs += "-o"
+        $ytArgs += "%(title)s [%(id)s].%(ext)s"
 
-        # Merge to mp4
-        $ytArgs += "--merge-output-format","mp4"
+        $textBoxStatus.AppendText("[KVALITET] Basta tillgangliga`r`n")
 
     } elseif ($radioAudio.Checked) {
         # Audio only (MP3)
@@ -331,15 +328,13 @@ $btnDownload.Add_Click({
 
     # === PLAYLIST HANTERING ===
     $maxVids = $numMaxVideos.Value
-    $ytArgs += "--playlist-end", $maxVids.ToString()
+    $ytArgs += "--max-downloads"
+    $ytArgs += $maxVids.ToString()
     $textBoxStatus.AppendText("[PLAYLIST] Max antal videos: $maxVids`r`n")
 
     # === OVRIGA INSTALLNINGAR ===
     $ytArgs += "--ffmpeg-location"
-    $ytArgs += "`"$ffmpegPath`""
-    $ytArgs += "--no-check-certificates"
-    $ytArgs += "--no-warnings"
-    $ytArgs += "--progress"
+    $ytArgs += "`"$baseDir`""
 
     # Lagg till URL sist
     $ytArgs += $url
