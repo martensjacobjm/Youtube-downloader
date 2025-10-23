@@ -2,52 +2,93 @@
 
 Denna mapp innehåller ALLT som behövs för att bygga en Windows-installer.
 
-## Snabbguide - Bygg Installer
+---
+
+## SNABBGUIDE - Bygg Installer (4 enkla steg)
+
+### Steg 1: Navigera till installation-mappen
 
 ```powershell
-# STEG 1: Bygg release-paket
-.\installation\installer\Build-Release.ps1
-
-# STEG 2: Bygg installer
-.\installation\installer\Build-Installer.ps1
+cd "C:\Users\JMS\OneDrive - Dala VS Värme & Sanitet\Privat\Youtube download\Youtube-downloader-claude-organize-and-fix-encoding-011CULRzAioj7ztQXDv1GLkU\installation"
 ```
 
-**Installer skapas i:** `installation/dist/YouTubeDownloader-Setup-1.0.0.exe`
+### Steg 2: Synka senaste källfiler
+
+```powershell
+.\installer\Sync-Source.ps1
+```
+
+Detta kopierar senaste versionen av GUI-scriptet från `../scripts/` till `src/scripts/`
+
+### Steg 3: Bygg release-paket
+
+```powershell
+.\installer\Build-Release.ps1
+```
+
+### Steg 4: Bygg installer
+
+```powershell
+.\installer\Build-Installer.ps1
+```
+
+**KLART!** Installern finns nu i: `dist\YouTubeDownloader-Setup-1.0.0.exe`
+
+---
+
+## Komplett Kommandosekvens (kopiera och klistra in)
+
+```powershell
+# Navigera till installation-mappen
+cd "C:\Users\JMS\OneDrive - Dala VS Värme & Sanitet\Privat\Youtube download\Youtube-downloader-claude-organize-and-fix-encoding-011CULRzAioj7ztQXDv1GLkU\installation"
+
+# Synka källfiler
+.\installer\Sync-Source.ps1
+
+# Bygg release-paket
+.\installer\Build-Release.ps1
+
+# Bygg installer
+.\installer\Build-Installer.ps1
+
+# KLART! Installer finns i:
+# .\dist\YouTubeDownloader-Setup-1.0.0.exe
+```
 
 ---
 
 ## Mappstruktur
 
 ```
-installation/
+installation/                   # <-- DU ÄR HÄR
 │
-├── src/                        # KÄLLKOD (kopieras från ../scripts/)
+├── src/                        # Källfiler (kopieras hit av Sync-Source.ps1)
 │   └── scripts/
 │       ├── YouTube_Downloader_GUI.ps1
 │       ├── Download-Dependencies.ps1
 │       └── Check-Updates.ps1
 │
-├── installer/                  # INSTALLER-KONFIGURATION
+├── installer/                  # Build-scripts
 │   ├── config/
-│   │   └── YouTubeDownloader.iss       # InnoSetup script
-│   ├── Build-Release.ps1                # STEG 1
-│   ├── Build-Installer.ps1              # STEG 2
-│   ├── YouTubeDownloader-Launcher.ps1   # Launcher (blir .exe)
-│   └── README.md
+│   │   └── YouTubeDownloader.iss
+│   ├── Sync-Source.ps1         # STEG 1: Synka källfiler
+│   ├── Build-Release.ps1       # STEG 2: Bygg release-paket
+│   ├── Build-Installer.ps1     # STEG 3: Bygg installer
+│   └── YouTubeDownloader-Launcher.ps1
 │
-├── release/                    # RELEASE-PAKET (genereras)
+├── release/                    # Release-paket (genereras av Build-Release)
 │   └── app/
 │       ├── YouTubeDownloader.exe
 │       ├── scripts/
 │       └── version.txt
 │
-└── dist/                       # FÄRDIGA INSTALLERS (genereras)
+└── dist/                       # Färdiga installers (genereras av Build-Installer)
     └── YouTubeDownloader-Setup-1.0.0.exe
 ```
 
 ---
 
-## Förutsättningar
+## Förutsättningar (installera EN gång)
 
 ### 1. ps2exe (PowerShell till EXE)
 
@@ -57,62 +98,63 @@ Install-Module -Name ps2exe -Scope CurrentUser -Force
 
 ### 2. InnoSetup 6
 
-**Ladda ner från:** https://jrsoftware.org/isdl.php
+**Ladda ner:** https://jrsoftware.org/isdl.php
 
 **Installera i:** `C:\Program Files (x86)\Inno Setup 6\`
 
 ---
 
-## Vad Händer i Varje Steg?
+## Detaljerad Process
 
-### STEG 1: Build-Release.ps1
+### Sync-Source.ps1
 
-Skapar ett **rent release-paket** i `release/app/`:
+**Vad det gör:**
+- Kopierar senaste GUI-scriptet från `../scripts/YouTube_Downloader_GUI.ps1`
+- Kopierar beroende-scripts
+- Sparar i `src/scripts/`
 
-✅ Kopierar GUI-scriptet från `src/scripts/`
-✅ Kopierar beroende-script
-✅ Bygger `YouTubeDownloader.exe` med ps2exe
-✅ Kopierar `version.txt`, README, LICENSE
+**Varför:** Håller installation-mappen uppdaterad med senaste koden.
 
-### STEG 2: Build-Installer.ps1
+### Build-Release.ps1
 
-Skapar **Windows installer** med InnoSetup:
+**Vad det gör:**
+- Läser källfiler från `src/scripts/`
+- Bygger `YouTubeDownloader.exe` med ps2exe
+- Kopierar version.txt, README, LICENSE
+- Skapar komplett paket i `release/app/`
 
-✅ Verifierar release-paketet
-✅ Hittar och kör InnoSetup
-✅ Kompilerar installer
-✅ Sparar i `dist/`
+**Output:** `release/app/YouTubeDownloader.exe` + alla filer klara för distribution
+
+### Build-Installer.ps1
+
+**Vad det gör:**
+- Verifierar att release-paketet finns
+- Hittar och kör InnoSetup
+- Kompilerar Windows installer
+- Sparar i `dist/`
+
+**Output:** `dist/YouTubeDownloader-Setup-1.0.0.exe`
 
 ---
 
-## Användning
+## Uppdatera Version
 
-### Bygg från Scratch
-
-```powershell
-cd "C:\path\to\Youtube-downloader"
-
-# Bygg med rensning
-.\installation\installer\Build-Release.ps1 -Clean
-.\installation\installer\Build-Installer.ps1
-```
-
-### Uppdatera Version
-
-1. Redigera `version.txt` i projektroten:
+1. **Redigera version.txt** i projektroten:
    ```
    1.0.1
    ```
 
-2. Bygg om:
+2. **Bygg om:**
    ```powershell
-   .\installation\installer\Build-Release.ps1
-   .\installation\installer\Build-Installer.ps1
+   cd installation
+   .\installer\Sync-Source.ps1
+   .\installer\Build-Release.ps1
+   .\installer\Build-Installer.ps1
    ```
 
-3. Ny installer skapas:
+3. **Ny installer:**
    ```
-   installation\dist\YouTubeDownloader-Setup-1.0.1.exe
+   dist\YouTubeDownloader-Setup-1.0.1.exe
    ```
 
 ---
@@ -120,13 +162,14 @@ cd "C:\path\to\Youtube-downloader"
 ## Testa Installern
 
 ```powershell
-.\installation\dist\YouTubeDownloader-Setup-1.0.0.exe
+# Från installation-mappen
+.\dist\YouTubeDownloader-Setup-1.0.0.exe
 ```
 
-Installern kommer att:
+Installern kommer:
 - Låta dig välja installationsplats
 - Låta dig välja nedladdningsmapp
-- Ladda ner yt-dlp och ffmpeg
+- Ladda ner yt-dlp och ffmpeg automatiskt
 - Skapa genvägar
 - Registrera i Windows
 
@@ -143,14 +186,23 @@ Import-Module ps2exe
 
 ### "InnoSetup hittas inte"
 
-Kontrollera installation:
-- `C:\Program Files (x86)\Inno Setup 6\ISCC.exe`
+Kontrollera att InnoSetup är installerat:
+```
+C:\Program Files (x86)\Inno Setup 6\ISCC.exe
+```
+
+### "Källfiler saknas"
+
+Kör Sync-Source först:
+```powershell
+.\installer\Sync-Source.ps1
+```
 
 ### "Release-paket saknas"
 
-Kör först steg 1:
+Kör Build-Release:
 ```powershell
-.\installation\installer\Build-Release.ps1
+.\installer\Build-Release.ps1
 ```
 
 ### "Execution Policy" fel
@@ -161,9 +213,25 @@ Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy Bypass -Force
 
 ---
 
+## Rensa Allt och Börja Om
+
+```powershell
+cd installation
+
+# Ta bort genererade filer
+Remove-Item release -Recurse -Force -ErrorAction SilentlyContinue
+Remove-Item dist -Recurse -Force -ErrorAction SilentlyContinue
+
+# Bygg från scratch
+.\installer\Sync-Source.ps1
+.\installer\Build-Release.ps1
+.\installer\Build-Installer.ps1
+```
+
+---
+
 ## Mer Information
 
-Se också:
-- `installer/README.md` - Detaljerad installer-guide
+- `installer/README.md` - Detaljerad build-guide
+- `installer/README-BUILD.md` - Teknisk dokumentation
 - `../docs/USER-MANUAL.md` - Användarmanual
-- `../README.md` - Projektöversikt
