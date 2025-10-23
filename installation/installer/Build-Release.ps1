@@ -6,7 +6,10 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-$ProjectRoot = Split-Path -Parent $PSScriptRoot
+
+# installation/installer/ -> installation/ -> Youtube-downloader/
+$InstallationRoot = Split-Path -Parent $PSScriptRoot
+$ProjectRoot = Split-Path -Parent $InstallationRoot
 
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host "  YouTube Downloader - Build Release    " -ForegroundColor Cyan
@@ -23,8 +26,8 @@ if (Test-Path $VersionFile) {
     exit 1
 }
 
-$ReleaseDir = Join-Path $ProjectRoot "release\app"
-$SrcDir = Join-Path $ProjectRoot "src"
+$ReleaseDir = Join-Path $InstallationRoot "release\app"
+$SrcDir = Join-Path $InstallationRoot "src"
 
 # Rensa release-mappen om --Clean
 if ($Clean -and (Test-Path $ReleaseDir)) {
@@ -54,34 +57,34 @@ Write-Host "[2/3] Kopierar filer..." -ForegroundColor Cyan
 
 $FilesToCopy = @(
     @{
-        Source = "src\scripts\YouTube_Downloader_GUI.ps1"
+        Source = Join-Path $SrcDir "scripts\YouTube_Downloader_GUI.ps1"
         Dest = "scripts\YouTube_Downloader_GUI.ps1"
         Required = $true
     },
     @{
-        Source = "src\scripts\Download-Dependencies.ps1"
+        Source = Join-Path $SrcDir "scripts\Download-Dependencies.ps1"
         Dest = "scripts\Download-Dependencies.ps1"
         Required = $true
     },
     @{
-        Source = "version.txt"
+        Source = Join-Path $ProjectRoot "version.txt"
         Dest = "version.txt"
         Required = $true
     },
     @{
-        Source = "README.md"
+        Source = Join-Path $ProjectRoot "README.md"
         Dest = "README.md"
         Required = $false
     },
     @{
-        Source = "LICENSE"
+        Source = Join-Path $ProjectRoot "LICENSE"
         Dest = "LICENSE"
         Required = $false
     }
 )
 
 foreach ($file in $FilesToCopy) {
-    $SourcePath = Join-Path $ProjectRoot $file.Source
+    $SourcePath = $file.Source
     $DestPath = Join-Path $ReleaseDir $file.Dest
 
     if (Test-Path $SourcePath) {
@@ -92,12 +95,12 @@ foreach ($file in $FilesToCopy) {
         }
 
         Copy-Item $SourcePath -Destination $DestPath -Force
-        Write-Host "  OK $($file.Source)" -ForegroundColor Green
+        Write-Host "  OK $(Split-Path $SourcePath -Leaf)" -ForegroundColor Green
     } elseif ($file.Required) {
-        Write-Host "  FEL: $($file.Source) saknas!" -ForegroundColor Red
+        Write-Host "  FEL: $SourcePath saknas!" -ForegroundColor Red
         exit 1
     } else {
-        Write-Host "  HOPPAR ÖVER: $($file.Source) (valfri, saknas)" -ForegroundColor Yellow
+        Write-Host "  HOPPAR ÖVER: $(Split-Path $SourcePath -Leaf) (valfri, saknas)" -ForegroundColor Yellow
     }
 }
 
@@ -168,5 +171,5 @@ Write-Host "Release-paket finns i:" -ForegroundColor Cyan
 Write-Host "  $ReleaseDir" -ForegroundColor White
 Write-Host ""
 Write-Host "Nästa steg:" -ForegroundColor Cyan
-Write-Host "  Kör: .\installer\Build-Installer.ps1" -ForegroundColor White
+Write-Host "  .\installation\installer\Build-Installer.ps1" -ForegroundColor White
 Write-Host ""

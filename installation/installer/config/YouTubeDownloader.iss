@@ -19,10 +19,10 @@ AppUpdatesURL={#MyAppURL}
 DefaultDirName={autopf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 AllowNoIcons=yes
-LicenseFile=..\..\LICENSE
+LicenseFile=..\..\..\LICENSE
 OutputDir=..\..\dist
 OutputBaseFilename=YouTubeDownloader-Setup-{#MyAppVersion}
-SetupIconFile=..\..\assets\icon.ico
+SetupIconFile=..\..\..\assets\icon.ico
 Compression=lzma2/max
 SolidCompression=yes
 WizardStyle=modern
@@ -59,7 +59,7 @@ Source: "..\..\release\app\README.md"; DestDir: "{app}"; Flags: ignoreversion is
 Source: "..\..\release\app\LICENSE"; DestDir: "{app}"; Flags: ignoreversion; Check: FileExists(ExpandConstant('{#SourcePath}\..\..\release\app\LICENSE'))
 
 ; Assets (om dom finns)
-Source: "..\..\assets\*"; DestDir: "{app}\assets"; Flags: ignoreversion recursesubdirs createallsubdirs; Check: DirExists(ExpandConstant('{#SourcePath}\..\..\assets'))
+Source: "..\..\..\assets\*"; DestDir: "{app}\assets"; Flags: ignoreversion recursesubdirs createallsubdirs; Check: DirExists(ExpandConstant('{#SourcePath}\..\..\..\assets'))
 
 [Icons]
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"

@@ -2,7 +2,10 @@
 # Bygger InnoSetup installer från release-paket
 
 $ErrorActionPreference = "Stop"
-$ProjectRoot = Split-Path -Parent $PSScriptRoot
+
+# installation/installer/ -> installation/ -> Youtube-downloader/
+$InstallationRoot = Split-Path -Parent $PSScriptRoot
+$ProjectRoot = Split-Path -Parent $InstallationRoot
 
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host "  YouTube Downloader - Build Installer  " -ForegroundColor Cyan
@@ -10,12 +13,12 @@ Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 
 # Kontrollera att release-paketet finns
-$ReleaseDir = Join-Path $ProjectRoot "release\app"
+$ReleaseDir = Join-Path $InstallationRoot "release\app"
 
 if (-not (Test-Path $ReleaseDir)) {
     Write-Host "FEL: Release-paket saknas!" -ForegroundColor Red
     Write-Host ""
-    Write-Host "Kör först: .\installer\Build-Release.ps1" -ForegroundColor Yellow
+    Write-Host "Kör först: .\installation\installer\Build-Release.ps1" -ForegroundColor Yellow
     Write-Host ""
     exit 1
 }
@@ -25,7 +28,7 @@ $ExePath = Join-Path $ReleaseDir "YouTubeDownloader.exe"
 if (-not (Test-Path $ExePath)) {
     Write-Host "FEL: YouTubeDownloader.exe saknas i release-paketet!" -ForegroundColor Red
     Write-Host ""
-    Write-Host "Kör först: .\installer\Build-Release.ps1" -ForegroundColor Yellow
+    Write-Host "Kör först: .\installation\installer\Build-Release.ps1" -ForegroundColor Yellow
     Write-Host ""
     exit 1
 }
@@ -44,7 +47,7 @@ if (Test-Path $VersionFile) {
 }
 
 # Skapa dist-mapp
-$DistDir = Join-Path $ProjectRoot "dist"
+$DistDir = Join-Path $InstallationRoot "dist"
 if (-not (Test-Path $DistDir)) {
     New-Item -ItemType Directory -Path $DistDir -Force | Out-Null
 }
