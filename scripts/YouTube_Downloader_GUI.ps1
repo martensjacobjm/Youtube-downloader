@@ -234,7 +234,8 @@ $btnDownload.Add_Click({
     $ytArgs = @()
 
     # Output directory
-    $ytArgs +="-P", $outputDir
+    $ytArgs += "-P"
+    $ytArgs += "`"$outputDir`""
 
     # === FORMAT OCH TYP ===
     if ($radioVideo.Checked) {
@@ -252,30 +253,30 @@ $btnDownload.Add_Click({
             '240p' = 'bestvideo[height<=240]+bestaudio/best'
         }
         $selectedQuality = $comboQuality.SelectedItem.ToString()
-        $ytArgs +="-f", $qualityMap[$selectedQuality]
+        $ytArgs += "-f", $qualityMap[$selectedQuality]
         $textBoxStatus.AppendText("[KVALITET] $selectedQuality`r`n")
 
         # Output template
-        $ytArgs +="-o","%(title)s.%(ext)s"
+        $ytArgs += "-o","%(title)s.%(ext)s"
 
         # Merge to mp4
-        $ytArgs +="--merge-output-format","mp4"
+        $ytArgs += "--merge-output-format","mp4"
 
     } elseif ($radioAudio.Checked) {
         # Audio only (MP3)
         $textBoxStatus.AppendText("[AUDIO] Laddar ner bara ljud (MP3)`r`n")
-        $ytArgs +="-f","bestaudio"
-        $ytArgs +="-x"  # Extract audio
-        $ytArgs +="--audio-format","mp3"
-        $ytArgs +="--audio-quality","0"  # Best quality
-        $ytArgs +="-o","%(title)s.%(ext)s"
+        $ytArgs += "-f","bestaudio"
+        $ytArgs += "-x"  # Extract audio
+        $ytArgs += "--audio-format","mp3"
+        $ytArgs += "--audio-quality","0"  # Best quality
+        $ytArgs += "-o","%(title)s.%(ext)s"
 
     } elseif ($radioSubsOnly.Checked) {
         # Subtitles only
         $textBoxStatus.AppendText("[SUBS] Laddar ner bara undertexter`r`n")
-        $ytArgs +="--skip-download"
-        $ytArgs +="--write-subs"
-        $ytArgs +="--write-auto-subs"
+        $ytArgs += "--skip-download"
+        $ytArgs += "--write-subs"
+        $ytArgs += "--write-auto-subs"
 
         # Sprak
         $langMap = @{
@@ -285,24 +286,24 @@ $btnDownload.Add_Click({
         }
         $selectedLang = $comboSubLang.SelectedItem.ToString()
         if ($selectedLang -ne 'Alla tillgangliga') {
-            $ytArgs +="--sub-langs", $langMap[$selectedLang]
+            $ytArgs += "--sub-langs", $langMap[$selectedLang]
         }
 
-        $ytArgs +="-o","%(title)s"
+        $ytArgs += "-o","%(title)s"
 
     } elseif ($radioDescOnly.Checked) {
         # Description only
         $textBoxStatus.AppendText("[DESC] Laddar ner bara beskrivning`r`n")
-        $ytArgs +="--skip-download"
-        $ytArgs +="--write-description"
-        $ytArgs +="-o","%(title)s"
+        $ytArgs += "--skip-download"
+        $ytArgs += "--write-description"
+        $ytArgs += "-o","%(title)s"
     }
 
     # === UNDERTEXTER (for video/audio mode) ===
     if ($checkDownloadSubs.Checked -and ($radioVideo.Checked -or $radioAudio.Checked)) {
         $textBoxStatus.AppendText("[SUBS] Inkluderar undertexter`r`n")
-        $ytArgs +="--write-subs"
-        $ytArgs +="--write-auto-subs"
+        $ytArgs += "--write-subs"
+        $ytArgs += "--write-auto-subs"
 
         # Sprak
         $langMap = @{
@@ -312,32 +313,33 @@ $btnDownload.Add_Click({
         }
         $selectedLang = $comboSubLang.SelectedItem.ToString()
         if ($selectedLang -ne 'Alla tillgangliga') {
-            $ytArgs +="--sub-langs", $langMap[$selectedLang]
+            $ytArgs += "--sub-langs", $langMap[$selectedLang]
         }
 
         # Embed subtitles (only for video)
         if ($checkEmbedSubs.Checked -and $radioVideo.Checked) {
             $textBoxStatus.AppendText("[EMBED] Baddar in undertexter i video`r`n")
-            $ytArgs +="--embed-subs"
+            $ytArgs += "--embed-subs"
         }
     }
 
     # === BESKRIVNING ===
     if ($checkDescription.Checked -and -not $radioDescOnly.Checked) {
         $textBoxStatus.AppendText("[DESC] Sparar beskrivning`r`n")
-        $ytArgs +="--write-description"
+        $ytArgs += "--write-description"
     }
 
     # === PLAYLIST HANTERING ===
     $maxVids = $numMaxVideos.Value
-    $ytArgs +="--playlist-end", $maxVids.ToString()
+    $ytArgs += "--playlist-end", $maxVids.ToString()
     $textBoxStatus.AppendText("[PLAYLIST] Max antal videos: $maxVids`r`n")
 
     # === OVRIGA INSTALLNINGAR ===
-    $ytArgs +="--ffmpeg-location", $ffmpegPath
-    $ytArgs +="--no-check-certificates"
-    $ytArgs +="--no-warnings"
-    $ytArgs +="--progress"
+    $ytArgs += "--ffmpeg-location"
+    $ytArgs += "`"$ffmpegPath`""
+    $ytArgs += "--no-check-certificates"
+    $ytArgs += "--no-warnings"
+    $ytArgs += "--progress"
 
     # Lagg till URL sist
     $ytArgs += $url
