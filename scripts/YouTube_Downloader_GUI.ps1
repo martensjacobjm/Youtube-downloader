@@ -26,7 +26,7 @@ if (-not (Test-Path $outputDir)) {
 # === SKAPA FORMULAR ===
 $form = New-Object System.Windows.Forms.Form
 $form.Text = 'YouTube Downloader'
-$form.Size = New-Object System.Drawing.Size(700, 750)
+$form.Size = New-Object System.Drawing.Size(700, 780)
 $form.StartPosition = 'CenterScreen'
 $form.FormBorderStyle = 'FixedDialog'
 $form.MaximizeBox = $false
@@ -156,7 +156,7 @@ $radioDescOnly.Add_CheckedChanged({
 # === EXTRA ALTERNATIV ===
 $groupExtra = New-Object System.Windows.Forms.GroupBox
 $groupExtra.Location = New-Object System.Drawing.Point(10, 240)
-$groupExtra.Size = New-Object System.Drawing.Size(320, 120)
+$groupExtra.Size = New-Object System.Drawing.Size(320, 150)
 $groupExtra.Text = 'Extra alternativ'
 $form.Controls.Add($groupExtra)
 
@@ -167,14 +167,21 @@ $checkDescription.Text = 'Spara beskrivning i textfil'
 $checkDescription.Checked = $false
 $groupExtra.Controls.Add($checkDescription)
 
+$checkComments = New-Object System.Windows.Forms.CheckBox
+$checkComments.Location = New-Object System.Drawing.Point(15, 55)
+$checkComments.Size = New-Object System.Drawing.Size(280, 25)
+$checkComments.Text = 'Ladda ner kommentarer'
+$checkComments.Checked = $false
+$groupExtra.Controls.Add($checkComments)
+
 $labelMaxVideos = New-Object System.Windows.Forms.Label
-$labelMaxVideos.Location = New-Object System.Drawing.Point(15, 60)
+$labelMaxVideos.Location = New-Object System.Drawing.Point(15, 90)
 $labelMaxVideos.Size = New-Object System.Drawing.Size(200, 20)
 $labelMaxVideos.Text = 'Max antal videos (spellista):'
 $groupExtra.Controls.Add($labelMaxVideos)
 
 $numMaxVideos = New-Object System.Windows.Forms.NumericUpDown
-$numMaxVideos.Location = New-Object System.Drawing.Point(220, 57)
+$numMaxVideos.Location = New-Object System.Drawing.Point(220, 87)
 $numMaxVideos.Size = New-Object System.Drawing.Size(80, 25)
 $numMaxVideos.Minimum = 1
 $numMaxVideos.Maximum = 999
@@ -183,13 +190,13 @@ $groupExtra.Controls.Add($numMaxVideos)
 
 # === STATUS/OUTPUT ===
 $labelStatus = New-Object System.Windows.Forms.Label
-$labelStatus.Location = New-Object System.Drawing.Point(10, 370)
+$labelStatus.Location = New-Object System.Drawing.Point(10, 400)
 $labelStatus.Size = New-Object System.Drawing.Size(660, 20)
 $labelStatus.Text = 'Status:'
 $form.Controls.Add($labelStatus)
 
 $textBoxStatus = New-Object System.Windows.Forms.TextBox
-$textBoxStatus.Location = New-Object System.Drawing.Point(10, 395)
+$textBoxStatus.Location = New-Object System.Drawing.Point(10, 425)
 $textBoxStatus.Size = New-Object System.Drawing.Size(660, 250)
 $textBoxStatus.Multiline = $true
 $textBoxStatus.ReadOnly = $true
@@ -201,7 +208,7 @@ $form.Controls.Add($textBoxStatus)
 
 # === LADDA NER KNAPP ===
 $btnDownload = New-Object System.Windows.Forms.Button
-$btnDownload.Location = New-Object System.Drawing.Point(10, 660)
+$btnDownload.Location = New-Object System.Drawing.Point(10, 690)
 $btnDownload.Size = New-Object System.Drawing.Size(660, 40)
 $btnDownload.Text = 'LADDA NER'
 $btnDownload.Font = New-Object System.Drawing.Font("Arial", 12, [System.Drawing.FontStyle]::Bold)
@@ -309,6 +316,38 @@ function Write-SubtitleTxt {
         $null = $output.AppendLine($cue.Timestamp)
         $null = $output.AppendLine($cue.Text)
         $null = $output.AppendLine("")
+    }
+
+    # Lagg till kommentarer om tillgangliga
+    $infoFile = Get-ChildItem -Path $OutputDir -Filter "*[$VideoID].info.json" -File | Select-Object -First 1
+    if ($infoFile -and (Test-Path -LiteralPath $infoFile.FullName)) {
+        try {
+            $jsonContent = Get-Content -LiteralPath $infoFile.FullName -Encoding UTF8 -Raw | ConvertFrom-Json
+            if ($jsonContent.comments -and $jsonContent.comments.Count -gt 0) {
+                $null = $output.AppendLine("")
+                $null = $output.AppendLine("=" * 80)
+                $null = $output.AppendLine("COMMENTS ($($jsonContent.comments.Count) totalt)")
+                $null = $output.AppendLine("=" * 80)
+                $null = $output.AppendLine("")
+
+                foreach ($comment in $jsonContent.comments) {
+                    $author = if ($comment.author) { $comment.author } else { "Unknown" }
+                    $text = if ($comment.text) { $comment.text } else { "" }
+                    $likes = if ($comment.like_count) { $comment.like_count } else { 0 }
+
+                    $null = $output.AppendLine("---")
+                    $null = $output.AppendLine("Author: $author")
+                    if ($likes -gt 0) {
+                        $null = $output.AppendLine("Likes: $likes")
+                    }
+                    $null = $output.AppendLine("")
+                    $null = $output.AppendLine($text)
+                    $null = $output.AppendLine("")
+                }
+            }
+        } catch {
+            # Ignorera fel vid lasning av kommentarer
+        }
     }
 
     $finalText = $output.ToString().Trim()
@@ -452,6 +491,14 @@ $btnDownload.Add_Click({
     if ($checkDescription.Checked -and -not $radioDescOnly.Checked) {
         $textBoxStatus.AppendText("[DESC] Sparar beskrivning`r`n")
         $ytArgs += "--write-description"
+    }
+
+    # === KOMMENTARER ===
+    if ($checkComments.Checked) {
+        $textBoxStatus.AppendText("[COMMENTS] Laddar ner kommentarer`r`n")
+        $ytArgs += "--write-comments"
+        $ytArgs += "--extractor-args"
+        $ytArgs += "youtube:max_comments=100,all,100"
     }
 
     # === PLAYLIST HANTERING ===
