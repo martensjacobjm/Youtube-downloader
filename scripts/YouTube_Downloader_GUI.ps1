@@ -308,6 +308,7 @@ function Write-SubtitleTxt {
     )
 
     $output = New-Object System.Text.StringBuilder
+    $commentsAdded = 0
 
     $descFile = Get-ChildItem -Path $OutputDir -Filter "*[$VideoID].description" -File | Select-Object -First 1
     if ($descFile -and (Test-Path -LiteralPath $descFile.FullName)) {
@@ -356,6 +357,7 @@ function Write-SubtitleTxt {
                     $null = $output.AppendLine("")
                     $null = $output.AppendLine($text)
                     $null = $output.AppendLine("")
+                    $commentsAdded++
                 }
             }
         } catch {
@@ -365,6 +367,8 @@ function Write-SubtitleTxt {
 
     $finalText = $output.ToString().Trim()
     [IO.File]::WriteAllText($OutputPath, $finalText, [Text.UTF8Encoding]::new($false))
+
+    return $commentsAdded
 }
 
 # === NEDLADDNINGSLOGIK ===
@@ -635,13 +639,7 @@ $btnDownload.Add_Click({
             $textBoxStatus.AppendText("$lastProgressLine`r`n")
         }
 
-        # Kolla om nedladdning lyckades genom att kolla om filer laddades ner
-        # (inte bara ExitCode, eftersom varningar kan ge ExitCode != 0)
-        $downloadedFiles = @(Get-ChildItem -Path $outputDir -File | Where-Object {
-            $_.Extension -match '\.(mp4|webm|mkv|m4a|mp3)$' -and
-            $_.LastWriteTime -gt (Get-Date).AddMinutes(-5)
-        })
-
+        # Las eventuella fel/varningar
         $errorOutput = ""
         if (Test-Path $errorFile) {
             $errorOutput = Get-Content $errorFile -Raw
@@ -651,11 +649,21 @@ $btnDownload.Add_Click({
         $hasRealErrors = $errorOutput -match 'ERROR:'
         $hasWarnings = $errorOutput -match 'WARNING:'
 
-        if ($downloadedFiles.Count -gt 0 -or $process.ExitCode -eq 0) {
+        # Kolla om nedladdning lyckades genom att kolla:
+        # 1. Om VTT-filer finns (betyder att yt-dlp hade framgang)
+        # 2. Om videofiler finns (aven gamla - kanske redan nedladdade)
+        # 3. Om ExitCode ar 0
+        $vttFiles = @(Get-ChildItem -Path $outputDir -Filter "*.vtt" -File -ErrorAction SilentlyContinue)
+        $videoFiles = @(Get-ChildItem -Path $outputDir -File -ErrorAction SilentlyContinue | Where-Object {
+            $_.Extension -match '\.(mp4|webm|mkv|m4a|mp3)$'
+        })
+
+        $hasContent = ($vttFiles.Count -gt 0) -or ($videoFiles.Count -gt 0) -or ($process.ExitCode -eq 0)
+
+        # Om det finns innehall OCH inga riktiga ERROR -> lyckat (kanske med varningar)
+        if ($hasContent -and -not $hasRealErrors) {
             # === GENERERA TXT-FILER FRAN VTT ===
             $textBoxStatus.AppendText("`r`n>> Genererar TXT-filer fran undertexter...`r`n")
-
-            $vttFiles = @(Get-ChildItem -Path $outputDir -Filter "*.vtt" -File)
 
             if ($vttFiles.Count -gt 0) {
                 foreach ($vtt in $vttFiles) {
@@ -677,8 +685,13 @@ $btnDownload.Add_Click({
 
                         if ($cues.Count -gt 0) {
                             $cleaned = Remove-ConsecutiveDuplicates -Cues $cues
-                            Write-SubtitleTxt -Cues $cleaned -OutputPath $txtPath -VideoID $videoID -OutputDir $outputDir
-                            $textBoxStatus.AppendText("   > Skapade: $($vtt.Name).txt ($($cleaned.Count) cues)`r`n")
+                            $commentsCount = Write-SubtitleTxt -Cues $cleaned -OutputPath $txtPath -VideoID $videoID -OutputDir $outputDir
+
+                            if ($commentsCount -gt 0) {
+                                $textBoxStatus.AppendText("   > Skapade: $($vtt.Name).txt ($($cleaned.Count) cues, $commentsCount kommentarer)`r`n")
+                            } else {
+                                $textBoxStatus.AppendText("   > Skapade: $($vtt.Name).txt ($($cleaned.Count) cues)`r`n")
+                            }
                         }
                     } catch {
                         $textBoxStatus.AppendText("   VARNING: TXT-generering failade for $($vtt.Name): $($_.Exception.Message)`r`n")
