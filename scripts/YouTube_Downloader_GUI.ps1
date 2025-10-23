@@ -327,6 +327,11 @@ $btnDownload.Add_Click({
         return
     }
 
+    # Ta bort &index=X fran URL for att ladda hela spellistan
+    $url = $url -replace '&index=\d+', ''
+    $url = $url -replace '\?index=\d+&', '?'
+    $url = $url -replace '\?index=\d+$', ''
+
     # Kontrollera att yt-dlp finns
     if (-not (Test-Path $ytDlpPath)) {
         [System.Windows.Forms.MessageBox]::Show("Hittar inte yt-dlp.exe pa: $ytDlpPath", "Fel", 'OK', 'Error')
