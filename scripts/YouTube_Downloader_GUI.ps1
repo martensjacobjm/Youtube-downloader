@@ -635,7 +635,23 @@ $btnDownload.Add_Click({
             $textBoxStatus.AppendText("$lastProgressLine`r`n")
         }
 
-        if ($process.ExitCode -eq 0) {
+        # Kolla om nedladdning lyckades genom att kolla om filer laddades ner
+        # (inte bara ExitCode, eftersom varningar kan ge ExitCode != 0)
+        $downloadedFiles = @(Get-ChildItem -Path $outputDir -File | Where-Object {
+            $_.Extension -match '\.(mp4|webm|mkv|m4a|mp3)$' -and
+            $_.LastWriteTime -gt (Get-Date).AddMinutes(-5)
+        })
+
+        $errorOutput = ""
+        if (Test-Path $errorFile) {
+            $errorOutput = Get-Content $errorFile -Raw
+        }
+
+        # Kolla om det finns riktiga ERROR (inte bara WARNING)
+        $hasRealErrors = $errorOutput -match 'ERROR:'
+        $hasWarnings = $errorOutput -match 'WARNING:'
+
+        if ($downloadedFiles.Count -gt 0 -or $process.ExitCode -eq 0) {
             # === GENERERA TXT-FILER FRAN VTT ===
             $textBoxStatus.AppendText("`r`n>> Genererar TXT-filer fran undertexter...`r`n")
 
@@ -674,13 +690,26 @@ $btnDownload.Add_Click({
             }
 
             $textBoxStatus.AppendText("`r`n=========================================`r`n")
-            $textBoxStatus.AppendText(">> KLART! Filerna sparades i: $outputDir`r`n")
-            [System.Windows.Forms.MessageBox]::Show("Nedladdning klar!`n`nFilerna finns i:`n$outputDir", "Klart!", 'OK', 'Information')
-        } else {
-            $errorOutput = ""
-            if (Test-Path $errorFile) {
-                $errorOutput = Get-Content $errorFile -Raw
+
+            # Visa varningar om det finns
+            if ($hasWarnings -and -not $hasRealErrors) {
+                $textBoxStatus.AppendText(">> KLART MED VARNINGAR!`r`n")
+                $textBoxStatus.AppendText("Filerna sparades i: $outputDir`r`n")
+                $textBoxStatus.AppendText("`r`n>> VARNINGAR (kan ignoreras):`r`n")
+
+                # Visa forsta varningen som exempel
+                if ($errorOutput -match 'WARNING:.*?SABR') {
+                    $textBoxStatus.AppendText("YouTube SABR-varningar (videorna laddades ner i tillgangligt format)`r`n")
+                    $textBoxStatus.AppendText("`r`nTIPS: Uppdatera yt-dlp for att undvika dessa varningar:`r`n")
+                    $textBoxStatus.AppendText("  yt-dlp.exe -U`r`n")
+                }
+
+                [System.Windows.Forms.MessageBox]::Show("Nedladdning klar med varningar!`n`nFilerna finns i:`n$outputDir`n`nSe statusfonstret for detaljer.", "Klart!", 'OK', 'Information')
+            } else {
+                $textBoxStatus.AppendText(">> KLART! Filerna sparades i: $outputDir`r`n")
+                [System.Windows.Forms.MessageBox]::Show("Nedladdning klar!`n`nFilerna finns i:`n$outputDir", "Klart!", 'OK', 'Information')
             }
+        } else {
             $textBoxStatus.AppendText("`r`n=========================================`r`n")
             $textBoxStatus.AppendText(">> FEL uppstod!`r`n")
             $textBoxStatus.AppendText($errorOutput)
