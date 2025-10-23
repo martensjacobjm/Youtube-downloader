@@ -253,20 +253,24 @@ $btnDownload.Add_Click({
         $ytArgs += "--remux-video"
         $ytArgs += "mp4"
 
-        # Output template
+        # Output template - MASTE citeras for att undvika problem med hakparenteser
         $ytArgs += "-o"
-        $ytArgs += "%(title)s [%(id)s].%(ext)s"
+        $ytArgs += "`"%(title)s [%(id)s].%(ext)s`""
 
         $textBoxStatus.AppendText("[KVALITET] Basta tillgangliga`r`n")
 
     } elseif ($radioAudio.Checked) {
         # Audio only (MP3)
         $textBoxStatus.AppendText("[AUDIO] Laddar ner bara ljud (MP3)`r`n")
-        $ytArgs += "-f","bestaudio"
+        $ytArgs += "-f"
+        $ytArgs += "bestaudio"
         $ytArgs += "-x"  # Extract audio
-        $ytArgs += "--audio-format","mp3"
-        $ytArgs += "--audio-quality","0"  # Best quality
-        $ytArgs += "-o","%(title)s.%(ext)s"
+        $ytArgs += "--audio-format"
+        $ytArgs += "mp3"
+        $ytArgs += "--audio-quality"
+        $ytArgs += "0"  # Best quality
+        $ytArgs += "-o"
+        $ytArgs += "`"%(title)s [%(id)s].%(ext)s`""
 
     } elseif ($radioSubsOnly.Checked) {
         # Subtitles only
@@ -283,17 +287,20 @@ $btnDownload.Add_Click({
         }
         $selectedLang = $comboSubLang.SelectedItem.ToString()
         if ($selectedLang -ne 'Alla tillgangliga') {
-            $ytArgs += "--sub-langs", $langMap[$selectedLang]
+            $ytArgs += "--sub-langs"
+            $ytArgs += $langMap[$selectedLang]
         }
 
-        $ytArgs += "-o","%(title)s"
+        $ytArgs += "-o"
+        $ytArgs += "`"%(title)s [%(id)s]`""
 
     } elseif ($radioDescOnly.Checked) {
         # Description only
         $textBoxStatus.AppendText("[DESC] Laddar ner bara beskrivning`r`n")
         $ytArgs += "--skip-download"
         $ytArgs += "--write-description"
-        $ytArgs += "-o","%(title)s"
+        $ytArgs += "-o"
+        $ytArgs += "`"%(title)s [%(id)s]`""
     }
 
     # === UNDERTEXTER (for video/audio mode) ===
