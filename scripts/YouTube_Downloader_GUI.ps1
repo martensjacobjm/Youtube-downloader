@@ -361,10 +361,25 @@ $btnDownload.Add_Click({
 
         $process = Start-Process -FilePath $ytDlpPath -ArgumentList $ytArgs -NoNewWindow -Wait -PassThru -RedirectStandardOutput $outputFile -RedirectStandardError $errorFile
 
-        # Las output
+        # Las output och filtrera progress-spam
         if (Test-Path $outputFile) {
-            $output = Get-Content $outputFile -Raw
-            $textBoxStatus.AppendText($output)
+            $allLines = Get-Content $outputFile
+            $filteredLines = $allLines | Where-Object {
+                # Behall alla rader UTOM progress-uppdateringar
+                $_ -notmatch '^\[download\]\s+\d+\.\d+%' -and
+                $_ -notmatch '^\[download\]\s+100\.0% of ~'
+            }
+
+            # Lagg till viktig information
+            foreach ($line in $filteredLines) {
+                $textBoxStatus.AppendText("$line`r`n")
+            }
+
+            # Lagg till slutlig progress-rad om nedladdning slutford
+            $finalProgress = $allLines | Where-Object { $_ -match '^\[download\] 100% of\s+[\d.]+\w+iB in' } | Select-Object -Last 1
+            if ($finalProgress) {
+                $textBoxStatus.AppendText("$finalProgress`r`n")
+            }
         }
 
         if ($process.ExitCode -eq 0) {
