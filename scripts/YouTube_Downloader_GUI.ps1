@@ -332,6 +332,16 @@ $btnDownload.Add_Click({
     $url = $url -replace '\?index=\d+&', '?'
     $url = $url -replace '\?index=\d+$', ''
 
+    # Konvertera watch?v=X&list=Y till playlist?list=Y for att ladda hela spellistan
+    if ($url -match '[?&]list=([^&]+)') {
+        $playlistId = $matches[1]
+        if ($url -match '[?&]v=') {
+            # URL innehaller bade v= och list=, konvertera till ren playlist-URL
+            $url = "https://www.youtube.com/playlist?list=$playlistId"
+            $textBoxStatus.AppendText("[INFO] Konverterade till playlist-URL`r`n")
+        }
+    }
+
     # Kontrollera att yt-dlp finns
     if (-not (Test-Path $ytDlpPath)) {
         [System.Windows.Forms.MessageBox]::Show("Hittar inte yt-dlp.exe pa: $ytDlpPath", "Fel", 'OK', 'Error')

@@ -9,7 +9,7 @@ echo.
 echo Startar grafiskt granssnitt...
 echo.
 
-REM Kör PowerShell GUI-skriptet
+REM Koenr PowerShell GUI-skriptet
 powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0scripts\YouTube_Downloader_GUI.ps1"
 
 if errorlevel 1 (
