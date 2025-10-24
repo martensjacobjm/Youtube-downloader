@@ -1,0 +1,56 @@
+# Binaries
+*.exe
+*.dll
+
+# Downloaded content
+Filmer/
+Videos/
+Undertextfiler/
+Subtitles/
+*.mp4
+*.mkv
+*.webm
+*.vtt
+*.srt
+*.txt
+*.description
+
+# Download archive files
+downloaded.txt
+download-archive.txt
+
+# PowerShell
+*.ps1~
+*.psm1~
+
+# Windows
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Linux
+*~
+.directory
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+temp/
+tmp/
+*.tmp
+
+# User-specific configuration
+config.local.ps1
