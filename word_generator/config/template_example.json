@@ -1,0 +1,43 @@
+{
+  "filename": "report.docx",
+  "title": "Monthly Report",
+  "content": [
+    {
+      "type": "heading",
+      "text": "Executive Summary",
+      "level": 1
+    },
+    {
+      "type": "paragraph",
+      "text": "This report summarizes the key metrics and achievements for the reporting period."
+    },
+    {
+      "type": "heading",
+      "text": "Key Metrics",
+      "level": 2
+    },
+    {
+      "type": "table",
+      "data": [
+        ["Metric", "Value", "Change"],
+        ["Revenue", "$100,000", "+15%"],
+        ["Customers", "1,250", "+8%"],
+        ["Satisfaction", "4.5/5", "+0.2"]
+      ],
+      "headers": true
+    },
+    {
+      "type": "heading",
+      "text": "Action Items",
+      "level": 2
+    },
+    {
+      "type": "numbered_list",
+      "items": [
+        "Review customer feedback",
+        "Update product roadmap",
+        "Schedule team meeting"
+      ]
+    }
+  ]
+}

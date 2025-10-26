@@ -1,0 +1,41 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Python: Current File",
+      "type": "python",
+      "request": "launch",
+      "program": "${file}",
+      "console": "integratedTerminal",
+      "justMyCode": true
+    },
+    {
+      "name": "Python: Word Generator (Help)",
+      "type": "python",
+      "request": "launch",
+      "program": "${workspaceFolder}/word_document_creator.py",
+      "args": ["--help"],
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "Python: Word Generator (Example Config)",
+      "type": "python",
+      "request": "launch",
+      "program": "${workspaceFolder}/word_document_creator.py",
+      "args": [
+        "--config",
+        "${workspaceFolder}/config/example.json",
+        "--log-level",
+        "DEBUG"
+      ],
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "PowerShell: Run Word Generator",
+      "type": "PowerShell",
+      "request": "launch",
+      "script": "${workspaceFolder}/RUN_WORD_GENERATOR.ps1",
+      "cwd": "${workspaceFolder}"
+    }
+  ]
+}

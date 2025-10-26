@@ -1,0 +1,74 @@
+{
+  "filename": "example_document.docx",
+  "title": "Example Word Document",
+  "content": [
+    {
+      "type": "heading",
+      "text": "Introduction",
+      "level": 1
+    },
+    {
+      "type": "paragraph",
+      "text": "This is an example document created using the Word Document Generator.",
+      "bold": false
+    },
+    {
+      "type": "heading",
+      "text": "Features",
+      "level": 2
+    },
+    {
+      "type": "bullet_list",
+      "items": [
+        "Create documents programmatically",
+        "Support for headings, paragraphs, lists, and tables",
+        "Template-based document generation",
+        "JSON configuration support",
+        "Dynamic path resolution for Windows"
+      ]
+    },
+    {
+      "type": "heading",
+      "text": "Example Table",
+      "level": 2
+    },
+    {
+      "type": "table",
+      "data": [
+        ["Feature", "Status", "Priority"],
+        ["Basic text", "Complete", "High"],
+        ["Tables", "Complete", "High"],
+        ["Templates", "Complete", "Medium"],
+        ["XML manipulation", "Planned", "Low"]
+      ],
+      "headers": true
+    },
+    {
+      "type": "page_break"
+    },
+    {
+      "type": "heading",
+      "text": "Numbered List Example",
+      "level": 2
+    },
+    {
+      "type": "numbered_list",
+      "items": [
+        "First step: Install Python 3.8+",
+        "Second step: Install dependencies (pip install -r requirements.txt)",
+        "Third step: Run the PowerShell wrapper (RUN_WORD_GENERATOR.ps1)",
+        "Fourth step: Create your documents!"
+      ]
+    },
+    {
+      "type": "heading",
+      "text": "Conclusion",
+      "level": 2
+    },
+    {
+      "type": "paragraph",
+      "text": "This document was generated automatically. Modify the JSON configuration to create your own documents.",
+      "italic": true
+    }
+  ]
+}
