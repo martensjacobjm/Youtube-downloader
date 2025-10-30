@@ -14,11 +14,14 @@ Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 
 # URLs för att ladda ner
-$ytdlpUrl = "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe"
+$ytdlpExeUrl = "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe"
+$ytdlpZipUrl = "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.zip"
 $ffmpegUrl = "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip"
 
 # Målfiler
 $ytdlpPath = Join-Path $InstallDir "yt-dlp.exe"
+$ytdlpZip = Join-Path $env:TEMP "yt-dlp.zip"
+$ytdlpExtract = Join-Path $env:TEMP "yt-dlp-extract"
 $ffmpegZip = Join-Path $env:TEMP "ffmpeg.zip"
 $ffmpegExtract = Join-Path $env:TEMP "ffmpeg-extract"
 
@@ -50,10 +53,51 @@ if (Test-Path $ytdlpPath) {
     Write-Host "  yt-dlp.exe finns redan, uppdaterar..." -ForegroundColor Yellow
 }
 
-if (-not (Download-FileWithProgress -Url $ytdlpUrl -OutputPath $ytdlpPath -Description "yt-dlp")) {
+# Försök först med .exe (direkt nedladdning)
+$ytdlpSuccess = $false
+if (Download-FileWithProgress -Url $ytdlpExeUrl -OutputPath $ytdlpPath -Description "yt-dlp.exe") {
+    $ytdlpSuccess = $true
+} else {
+    # Om .exe misslyckas, försök med .zip
+    Write-Host "  Försöker med .zip-version..." -ForegroundColor Yellow
+
+    if (Download-FileWithProgress -Url $ytdlpZipUrl -OutputPath $ytdlpZip -Description "yt-dlp.zip") {
+        Write-Host "  Packar upp yt-dlp.zip..." -ForegroundColor Yellow
+
+        try {
+            # Skapa extraktionsmapp
+            if (Test-Path $ytdlpExtract) {
+                Remove-Item $ytdlpExtract -Recurse -Force
+            }
+            New-Item -ItemType Directory -Path $ytdlpExtract -Force | Out-Null
+
+            # Packa upp ZIP
+            Expand-Archive -Path $ytdlpZip -DestinationPath $ytdlpExtract -Force
+
+            # Hitta yt-dlp.exe i den uppackade strukturen
+            $ytdlpExe = Get-ChildItem -Path $ytdlpExtract -Filter "yt-dlp.exe" -Recurse | Select-Object -First 1
+
+            if ($ytdlpExe) {
+                Copy-Item $ytdlpExe.FullName -Destination $ytdlpPath -Force
+                Write-Host "  OK! yt-dlp.exe uppackad och kopierad" -ForegroundColor Green
+                $ytdlpSuccess = $true
+            }
+
+            # Städa upp
+            Remove-Item $ytdlpZip -Force -ErrorAction SilentlyContinue
+            Remove-Item $ytdlpExtract -Recurse -Force -ErrorAction SilentlyContinue
+
+        } catch {
+            Write-Host "  FEL: Kunde inte packa upp yt-dlp.zip" -ForegroundColor Red
+            Write-Host "  Felmeddelande: $($_.Exception.Message)" -ForegroundColor Red
+        }
+    }
+}
+
+if (-not $ytdlpSuccess) {
     Write-Host ""
     Write-Host "VARNING: yt-dlp kunde inte laddas ner automatiskt." -ForegroundColor Yellow
-    Write-Host "Du kan ladda ner manuellt från: $ytdlpUrl" -ForegroundColor Yellow
+    Write-Host "Du kan ladda ner manuellt från: https://github.com/yt-dlp/yt-dlp/releases" -ForegroundColor Yellow
     Write-Host ""
 }
 
